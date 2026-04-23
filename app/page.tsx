@@ -74,10 +74,10 @@ export default function HomePage() {
                 {t.hero.eyebrow}
               </div>
               <h1
-                className={`font-head leading-[1.02] tracking-tightish text-ink font-light ${
+                className={`font-head tracking-tightish text-ink font-light ${
                   locale === "bn"
-                    ? "text-[30px] sm:text-[40px] lg:text-[48px]"
-                    : "text-[32px] sm:text-[44px] lg:text-[56px]"
+                    ? "text-[30px] sm:text-[40px] lg:text-[48px] leading-[1.18]"
+                    : "text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02]"
                 }`}
               >
                 {t.hero.title.pre}{" "}
@@ -117,10 +117,10 @@ export default function HomePage() {
             <div className="col-span-12 lg:col-span-4">
               <div className="label-eyebrow mb-3">{t.reference.eyebrow}</div>
               <h2
-                className={`font-head leading-tight tracking-tightish text-ink mb-4 ${
+                className={`font-head tracking-tightish text-ink mb-4 ${
                   locale === "bn"
-                    ? "text-[22px] sm:text-[24px]"
-                    : "text-[24px] sm:text-[28px]"
+                    ? "text-[22px] sm:text-[24px] leading-[1.3]"
+                    : "text-[24px] sm:text-[28px] leading-tight"
                 }`}
               >
                 {t.reference.title.pre}{" "}

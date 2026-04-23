@@ -351,7 +351,7 @@ function InvestmentAdvisoryCard({
   // State 1: Already claiming full rebate
   if (result.atMaxRebate && result.investmentRebate > 0) {
     return (
-      <div className="rounded-xl border border-emerald/30 bg-emerald-soft/60 p-5 card-lift relative overflow-hidden">
+      <div className="rounded-xl border border-emerald/30 bg-emerald-soft/60 p-5 card-lift relative overflow-hidden animate-fadeSlideUp">
         <div className="flex items-baseline justify-between mb-2.5">
           <span className="label-eyebrow text-emerald-deep">
             {t.advisory.maxedEyebrow}
@@ -377,7 +377,7 @@ function InvestmentAdvisoryCard({
     result.additionalInvestmentNeeded > 0
   ) {
     return (
-      <div className="rounded-xl border border-ember/40 bg-amber-50/40 p-5 card-lift">
+      <div className="rounded-xl border border-ember/40 bg-amber-50/40 p-5 card-lift animate-fadeSlideUp">
         <div className="flex items-baseline justify-between mb-2.5">
           <span className="label-eyebrow text-ember">
             {t.advisory.minTaxEyebrow}
@@ -401,12 +401,16 @@ function InvestmentAdvisoryCard({
     result.additionalInvestmentNeeded > 0 &&
     result.possibleTaxSavings > 0
   ) {
+    const rebateProgress =
+      result.maxPossibleRebate > 0
+        ? (result.investmentRebate / result.maxPossibleRebate) * 100
+        : 0;
     return (
-      <div className="rounded-2xl border border-emerald/40 bg-surface p-5 card-lift relative overflow-hidden">
+      <div className="rounded-2xl border border-emerald/40 bg-surface p-5 card-lift relative overflow-hidden animate-fadeSlideUp">
         {/* Decorative accent */}
         <div
           aria-hidden
-          className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-emerald-soft/80 blur-2xl pointer-events-none"
+          className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-emerald-soft/90 blur-2xl pointer-events-none"
         />
 
         <div className="relative">
@@ -417,22 +421,38 @@ function InvestmentAdvisoryCard({
             <LightbulbIcon />
           </div>
 
-          <div className="space-y-1">
-            <p className="text-[16px] text-ink font-medium leading-tight">
+          <div className="space-y-1.5">
+            <p className="text-[16px] text-ink font-medium leading-snug">
               {tmpl(t.advisory.investMore, {
                 amount: fmt(result.additionalInvestmentNeeded),
               })}
             </p>
-            <p className="text-[14px] text-emerald-deep leading-tight">
+            <p className="text-[14px] text-emerald-deep leading-snug">
               {tmpl(t.advisory.saveTax, {
                 amount: fmt(result.possibleTaxSavings),
               })}
             </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-rule/60 grid grid-cols-2 gap-3">
+          {/* Progress bar — current rebate vs max possible */}
+          <div className="mt-4">
+            <div
+              className="h-1 bg-rule rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.round(rebateProgress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className="h-full bg-emerald rounded-full transition-all duration-500 ease-swift"
+                style={{ width: `${Math.min(100, Math.max(0, rebateProgress))}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-rule/60 grid grid-cols-2 gap-3">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted font-medium mb-0.5">
+              <div className="label-eyebrow !text-[9.5px] mb-0.5">
                 {t.advisory.currentRebateLabel}
               </div>
               <div className="num text-[13px] text-ink">
@@ -440,7 +460,7 @@ function InvestmentAdvisoryCard({
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted font-medium mb-0.5">
+              <div className="label-eyebrow !text-[9.5px] mb-0.5">
                 {t.advisory.maxRebateLabel}
               </div>
               <div className="num text-[13px] text-emerald-deep font-medium">
@@ -449,7 +469,7 @@ function InvestmentAdvisoryCard({
             </div>
           </div>
 
-          <p className="text-[10.5px] text-muted italic mt-3 leading-snug">
+          <p className="text-[10.5px] text-muted italic mt-3 leading-relaxed">
             {t.advisory.ruleHint}
           </p>
         </div>

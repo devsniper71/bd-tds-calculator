@@ -71,6 +71,13 @@
     letter-spacing: -0.01em;
   }
 
+  /* Bangla numerals aren't in Geist Mono — fall back to Hind Siliguri which has
+     proper Bengali digits, and ease the tight tracking which is Latin-only. */
+  html[lang="bn"] .num {
+    font-family: var(--font-bn), var(--font-mono), ui-monospace, monospace;
+    letter-spacing: 0;
+  }
+
   .rule-h {
     height: 1px;
     background: linear-gradient(
@@ -120,6 +127,23 @@
     font-variant-numeric: tabular-nums;
     font-weight: 400;
     letter-spacing: -0.04em;
+  }
+
+  /* Bangla numerals need the Bangla display font; also loosen tracking and
+     line-height so ascenders/descenders (য়, ো, ্র) don't get clipped. */
+  html[lang="bn"] .hero-num {
+    font-family: var(--font-bn-display), var(--font-display), Georgia, serif;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  /* Bangla text at small line-heights clips tops and bottoms of matras.
+     Soften any utility-applied tight leading within Bangla context. */
+  html[lang="bn"] .leading-tight {
+    line-height: 1.4;
+  }
+  html[lang="bn"] .leading-none {
+    line-height: 1.15;
   }
 
   .card-lift {
