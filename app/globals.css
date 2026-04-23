@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --font-body: var(--font-sans);
+    --font-head: var(--font-display);
+  }
+
+  html[lang="bn"] {
+    --font-body: var(--font-bn), var(--font-sans);
+    --font-head: var(--font-bn-display), var(--font-display);
+  }
+
+  html,
+  body {
+    background-color: #f6f2ea;
+    color: #0d0d0b;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11", "tnum";
+  }
+
+  body {
+    font-family: var(--font-body), system-ui, sans-serif;
+    background-image:
+      radial-gradient(1px 1px at 25% 35%, rgba(14, 14, 12, 0.022) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 65%, rgba(14, 14, 12, 0.022) 0%, transparent 100%);
+    background-size: 3px 3px;
+  }
+
+  ::selection {
+    background-color: #0a5d44;
+    color: #f6f2ea;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(10, 93, 68, 0.24);
+    border-radius: 6px;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .font-head {
+    font-family: var(--font-head), Georgia, serif;
+  }
+  .font-body {
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+
+  .num {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-feature-settings: "tnum", "zero", "ss01";
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .rule-h {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(14, 14, 12, 0.1) 12%,
+      rgba(14, 14, 12, 0.1) 88%,
+      transparent
+    );
+  }
+
+  .label-eyebrow {
+    font-family: var(--font-body), system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #615f56;
+  }
+
+  html[lang="bn"] .label-eyebrow {
+    text-transform: none;
+    letter-spacing: 0.04em;
+    font-size: 11.5px;
+  }
+
+  .input-base {
+    @apply w-full bg-paper text-ink num text-right px-3 py-2 rounded-md;
+    @apply border border-rule transition-all duration-200;
+  }
+
+  .input-base:hover:not(:focus) {
+    border-color: rgba(10, 93, 68, 0.4);
+    background-color: #fafaf4;
+  }
+
+  .input-base:focus {
+    outline: none;
+    border-color: #0a5d44;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(10, 93, 68, 0.12);
+  }
+
+  .hero-num {
+    font-family: var(--font-display), Georgia, serif;
+    font-feature-settings: "ss01", "tnum", "zero";
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+  }
+
+  .card-lift {
+    transition: box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card-lift:hover {
+    box-shadow: 0 1px 0 rgba(14, 14, 12, 0.04),
+                0 20px 40px -18px rgba(14, 14, 12, 0.14);
+  }
+
+  .number-pop {
+    animation: numberPop 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes numberPop {
+    0% { opacity: 0.4; transform: translateY(3px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .chip-button {
+    transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, background-color, border-color;
+  }
+  .chip-button:active {
+    transform: scale(0.985);
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+  .card-lift {
+    break-inside: avoid;
+  }
+}
