@@ -12,6 +12,11 @@ const newsreader = Newsreader({
   axes: ["opsz"],
   style: ["normal", "italic"],
   display: "swap",
+  // Next has no built-in metrics for Newsreader, so skip its automatic
+  // size-adjusted fallback (which logs a warning) and give it an explicit
+  // serif fallback instead.
+  fallback: ["Georgia", "Times New Roman", "serif"],
+  adjustFontFallback: false,
 });
 
 // UI / body — a neutral, highly legible grotesk with tabular-number support.
