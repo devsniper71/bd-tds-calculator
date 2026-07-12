@@ -1,5 +1,8 @@
 # ayakor · Bangladesh Income Tax Calculator
 
+[![CI](https://github.com/meetRaselAhmed/ayakor/actions/workflows/ci.yml/badge.svg)](https://github.com/meetRaselAhmed/ayakor/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0a5d44.svg)](LICENSE)
+
 A precise, modern income-tax calculator for Bangladesh, built on the **Income Tax Act 2023** and its yearly Finance Acts / Ordinances. Covers **two assessment years** — AY 2025–26 and 2026–27 — each with its own fully-sourced rate card.
 
 Live at **[ayakor.com](https://ayakor.com)**.
