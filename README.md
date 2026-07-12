@@ -52,6 +52,7 @@ Get the ID from GA4: **Admin → Data streams → your web stream → Measuremen
 ```bash
 npm install
 npm run dev     # → http://localhost:3000
+npm test        # run the calculation-engine test suite (Vitest)
 ```
 
 ## Deploy to Vercel
@@ -95,6 +96,7 @@ Point `ayakor.com` at Vercel (add A/AAAA or CNAME records as Vercel's dashboard 
 ├── lib/
 │   ├── tax-years.ts           Per-assessment-year rate cards + legal sources
 │   ├── tax-calculator.ts      Year-agnostic calculation engine + formatters
+│   ├── tax-calculator.test.ts Vitest suite for the engine (npm test)
 │   ├── faq.ts                 FAQ content (shared by the section + FAQPage JSON-LD)
 │   └── i18n/
 │       ├── index.tsx          useTranslation hook (English, provider-less)
