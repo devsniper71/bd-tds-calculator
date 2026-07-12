@@ -74,8 +74,8 @@ Open an issue using the **Tax data correction** template (or describe: the year,
 
 ## Verifying your change
 
-- `npm run build` must pass (it type-checks the whole project).
-- If you touched `lib/tax-calculator.ts` or `lib/tax-years.ts`, **verify the numbers**. Compute at least one worked example by hand (or with the source's own example) and confirm the app produces the same result. Include that check in your PR description.
+- `npm test` (Vitest) and `npm run build` must both pass. `npm run lint` should be clean.
+- If you touched `lib/tax-calculator.ts` or `lib/tax-years.ts`, **verify the numbers and add a test**. The engine has a committed suite in `lib/tax-calculator.test.ts` — add or update a case (with the source's own worked example where possible) so the new behaviour is locked in. Compute at least one example by hand and reference it in your PR.
 - If you touched the UI, confirm it renders correctly in **both light and dark themes** and on a narrow (mobile) viewport.
 
 ---
