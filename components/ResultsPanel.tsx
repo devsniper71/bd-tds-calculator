@@ -1,29 +1,90 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
+  CalculatorInput,
   CalculatorResult,
   formatBDT,
   formatPercent,
-  type LocaleCode,
 } from "@/lib/tax-calculator";
+import { getYearConfig } from "@/lib/tax-years";
 import { useTranslation, tmpl } from "@/lib/i18n";
 
 interface Props {
   result: CalculatorResult;
+  input: CalculatorInput;
 }
 
-export function ResultsPanel({ result }: Props) {
-  const { t, locale } = useTranslation();
+export function ResultsPanel({ result, input }: Props) {
+  const { t } = useTranslation();
+  const cfg = getYearConfig(result.assessmentYearId);
   const isRefund = result.taxDue < 0;
   const dueAmount = Math.abs(result.taxDue);
+  const filingLabel =
+    cfg.filingIncentive && input.filingQuarter
+      ? t.filing.quarters[input.filingQuarter]
+      : null;
 
-  const fmt = (n: number) => formatBDT(n, locale);
-  const pct = (r: number, d = 2) => formatPercent(r, locale, d);
+  const fmt = (n: number) => formatBDT(n);
+  const pct = (r: number, d = 2) => formatPercent(r, d);
+
+  // Set on mount to avoid a server/client hydration mismatch on the date.
+  const [printDate, setPrintDate] = useState("");
+  useEffect(() => {
+    setPrintDate(
+      new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    );
+  }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <div className="bg-emerald-deep text-paper rounded-2xl p-7 relative overflow-hidden card-lift">
+    <div className="space-y-6 results-panel">
+      {/* Print-only computation-sheet header + key figures */}
+      <div className="print-only">
+        <div className="flex items-baseline justify-between border-b border-ink/30 pb-1.5 mb-2">
+          <span className="font-head text-[17px] text-ink">
+            ayakor — Income Tax Computation
+          </span>
+          <span className="num text-[11px] text-muted">
+            {cfg.label}
+            {printDate ? ` · ${printDate}` : ""}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[11px] mb-2">
+          <PrintLine label="Taxpayer" value={t.categories[input.category]} />
+          <PrintLine label="Statute" value={cfg.statute} />
+          <PrintLine label="Monthly TDS" value={fmt(result.monthlyTDS)} num />
+          <PrintLine
+            label="Annual tax payable"
+            value={fmt(result.annualTaxPayable)}
+            num
+          />
+          <PrintLine label="Effective rate" value={pct(result.effectiveTaxRate)} num />
+          {filingLabel && <PrintLine label="Return filing" value={filingLabel} />}
+        </div>
+        <p className="text-[9px] text-muted border-t border-ink/15 pt-1 mb-1">
+          Unofficial estimate for guidance only — not professional tax advice.
+          Generated at ayakor.com.
+        </p>
+      </div>
+
+      {/* Print / Save-as-PDF button (screen only) */}
+      <div className="no-print flex justify-end">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-paper/70 px-3 py-1.5 text-[11.5px] text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
+        >
+          <PrinterIcon />
+          {t.results.printButton}
+        </button>
+      </div>
+
+      {/* Hero (screen only — the print sheet uses the compact header above) */}
+      <div className="bg-emerald-deep text-paper rounded-2xl p-7 relative overflow-hidden card-lift glass-hero no-print">
         <div
           aria-hidden
           className="absolute -right-3 -top-2 hero-num text-[180px] leading-none opacity-[0.07] select-none"
@@ -53,7 +114,7 @@ export function ResultsPanel({ result }: Props) {
             isRefund
               ? "border-emerald/30 bg-emerald-soft"
               : result.taxDue > 0
-              ? "border-ember/40 bg-amber-50/40"
+              ? "border-ember/40 bg-ember/10"
               : "border-rule bg-surface"
           }`}
         >
@@ -69,63 +130,60 @@ export function ResultsPanel({ result }: Props) {
           </div>
           <p className="text-[12px] text-muted mt-1.5 leading-relaxed">
             {tmpl(t.results.settlementExplain, {
-              annual: fmt(result.annualTaxPayable),
+              annual: fmt(result.taxAfterFilingIncentive),
               deducted: fmt(result.taxAlreadyDeducted),
             })}
           </p>
         </div>
       )}
 
-      {/* Investment advisory */}
+      {/* Investment advisory (planning aid — screen only, not part of the computation) */}
       {!result.isNonResidentForeigner &&
         result.taxableIncome > result.taxFreeThreshold && (
-          <InvestmentAdvisoryCard result={result} locale={locale} />
+          <div className="no-print">
+            <InvestmentAdvisoryCard result={result} />
+          </div>
         )}
 
       {/* Income summary */}
       <Card title={t.results.incomeSummary}>
         <Row
           label={t.results.totalEmployment}
-          value={result.totalEmploymentIncome}
-          locale={locale}
-        />
+          value={result.totalEmploymentIncome}        />
         {result.otherIncome > 0 && (
           <Row
             label={t.results.otherIncome}
             value={result.otherIncome}
-            locale={locale}
           />
         )}
         {result.dividendIncome > 0 && (
-          <>
-            <Row
-              label={t.results.dividendGross}
-              value={result.dividendIncome}
-              locale={locale}
-            />
-            <Row
-              label={t.results.dividendExempt}
-              value={-result.dividendExemption}
-              locale={locale}
-            />
-          </>
+          <Row
+            label={t.results.dividendGross}
+            value={result.dividendIncome}
+          />
         )}
         <Row
           label={t.results.grossAnnual}
           value={result.grossAnnualIncome}
           strong
-          locale={locale}
         />
+        {result.dividendExemption > 0 && (
+          <Row
+            label={t.results.dividendExempt}
+            value={-result.dividendExemption}
+          />
+        )}
         {!result.isNonResidentForeigner && (
           <Row
             label={t.results.salaryExemptionFull}
             value={-result.salaryExemption}
             hint={
-              result.salaryExemption === 500_000
-                ? t.results.exemptionCapped
+              result.salaryExemption >= result.salaryExemptionCap
+                ? tmpl(t.results.exemptionCapped, {
+                    cap: formatBDT(result.salaryExemptionCap),
+                  })
                 : t.results.exemptionNotCapped
             }
-            locale={locale}
           />
         )}
         <Row
@@ -133,8 +191,14 @@ export function ResultsPanel({ result }: Props) {
           value={result.taxableIncome}
           strong
           accent
-          locale={locale}
         />
+        {result.exemptIncome > 0 && (
+          <Row
+            label={t.results.exemptIncomeLine}
+            value={result.exemptIncome}
+            hint={t.results.exemptIncomeHint}
+          />
+        )}
       </Card>
 
       {/* Slab-wise */}
@@ -146,22 +210,19 @@ export function ResultsPanel({ result }: Props) {
             <span className="text-right">{t.results.tax}</span>
           </div>
           {result.slabBreakdown.map((slab, i) => (
-            <SlabRow key={i} slab={slab} locale={locale} />
+            <SlabRow key={i} slab={slab} />
           ))}
         </div>
         <div className="rule-h !my-4" />
         <Row
           label={t.results.grossTax}
           value={result.grossTax}
-          strong
-          locale={locale}
-        />
+          strong        />
         {result.investmentRebate > 0 && (
           <Row
             label={t.results.investmentRebate}
             value={-result.investmentRebate}
             hint={t.results.rebateHint}
-            locale={locale}
           />
         )}
         {result.surcharge > 0 && (
@@ -171,16 +232,14 @@ export function ResultsPanel({ result }: Props) {
             })}
             value={result.surcharge}
             hint={t.results.surchargeHint}
-            locale={locale}
           />
         )}
         {result.minimumTax > 0 &&
-          result.taxAfterRebate + result.surcharge < result.minimumTax && (
+          result.taxAfterRebate < result.minimumTax && (
             <Row
               label={t.results.minimumTax}
               value={result.minimumTax}
               hint={t.results.minimumTaxHint}
-              locale={locale}
             />
           )}
         <Row
@@ -188,8 +247,31 @@ export function ResultsPanel({ result }: Props) {
           value={result.annualTaxPayable}
           strong
           accent
-          locale={locale}
         />
+        {(result.filingRebate > 0 || result.filingSurcharge > 0) && (
+          <>
+            {result.filingRebate > 0 && (
+              <Row
+                label={t.results.earlyFilingRebate}
+                value={-result.filingRebate}
+                hint={t.results.filingProvisionalNote}
+              />
+            )}
+            {result.filingSurcharge > 0 && (
+              <Row
+                label={t.results.lateFilingSurcharge}
+                value={result.filingSurcharge}
+                hint={t.results.filingProvisionalNote}
+              />
+            )}
+            <Row
+              label={t.results.taxAfterFiling}
+              value={result.taxAfterFilingIncentive}
+              strong
+              accent
+            />
+          </>
+        )}
       </Card>
 
       {/* Statutory */}
@@ -197,8 +279,35 @@ export function ResultsPanel({ result }: Props) {
         <p className="font-medium text-ink/70 mb-1.5 tracking-tight">
           {t.results.statutoryBasis}
         </p>
-        <p>{t.results.statutoryText}</p>
+        <p>
+          {tmpl(t.results.statutoryTextTmpl, {
+            statute: cfg.statute,
+            year: cfg.label,
+            incomeYear: cfg.incomeYear,
+          })}
+        </p>
       </div>
+    </div>
+  );
+}
+
+function PrintLine({
+  label,
+  value,
+  num = false,
+}: {
+  label: string;
+  value: string;
+  num?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-muted">{label}</span>
+      <span
+        className={`text-ink font-medium text-right ${num ? "num" : ""}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -211,7 +320,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-rule bg-surface p-5 shadow-card card-lift">
+    <div className="rounded-xl border border-rule glass p-5 shadow-card card-lift">
       <h3 className="font-head text-[15px] font-medium text-ink mb-3 tracking-tightish">
         {title}
       </h3>
@@ -226,17 +335,15 @@ function Row({
   hint,
   strong = false,
   accent = false,
-  locale,
 }: {
   label: string;
   value: number;
   hint?: string;
   strong?: boolean;
   accent?: boolean;
-  locale: LocaleCode;
 }) {
   const formatValue = (v: number) =>
-    v < 0 ? `(${formatBDT(Math.abs(v), locale)})` : formatBDT(v, locale);
+    v < 0 ? `(${formatBDT(Math.abs(v))})` : formatBDT(v);
   return (
     <>
       <div className="flex items-baseline justify-between gap-3">
@@ -270,17 +377,12 @@ function Row({
 
 function SlabRow({
   slab,
-  locale,
 }: {
   slab: CalculatorResult["slabBreakdown"][number];
-  locale: LocaleCode;
 }) {
   const range = slab.rangeTo
-    ? `${formatBDT(slab.rangeFrom, locale)} – ${formatBDT(
-        slab.rangeTo,
-        locale
-      )}`
-    : `≥ ${formatBDT(slab.rangeFrom, locale)}`;
+    ? `${formatBDT(slab.rangeFrom)} – ${formatBDT(slab.rangeTo)}`
+    : `≥ ${formatBDT(slab.rangeFrom)}`;
   const inactive = slab.taxableInThisSlab === 0;
   return (
     <>
@@ -289,7 +391,7 @@ function SlabRow({
           inactive ? "text-muted/40" : "text-emerald-deep font-medium"
         }`}
       >
-        {formatPercent(slab.rate, locale, 0)}
+        {formatPercent(slab.rate, 0)}
       </span>
       <span
         className={`num text-[11.5px] truncate ${
@@ -304,7 +406,7 @@ function SlabRow({
           inactive ? "text-muted/40" : "text-ink"
         }`}
       >
-        {formatBDT(slab.taxAmount, locale)}
+        {formatBDT(slab.taxAmount)}
       </span>
     </>
   );
@@ -338,15 +440,9 @@ function AnimatedFigure({
 //   3. "Opportunity" — can invest more to reduce tax
 // ───────────────────────────────────────────────────────────────────────────
 
-function InvestmentAdvisoryCard({
-  result,
-  locale,
-}: {
-  result: CalculatorResult;
-  locale: LocaleCode;
-}) {
+function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
   const { t } = useTranslation();
-  const fmt = (n: number) => formatBDT(n, locale);
+  const fmt = (n: number) => formatBDT(n);
 
   // State 1: Already claiming full rebate
   if (result.atMaxRebate && result.investmentRebate > 0) {
@@ -377,7 +473,7 @@ function InvestmentAdvisoryCard({
     result.additionalInvestmentNeeded > 0
   ) {
     return (
-      <div className="rounded-xl border border-ember/40 bg-amber-50/40 p-5 card-lift animate-fadeSlideUp">
+      <div className="rounded-xl border border-ember/40 bg-ember/10 p-5 card-lift animate-fadeSlideUp">
         <div className="flex items-baseline justify-between mb-2.5">
           <span className="label-eyebrow text-ember">
             {t.advisory.minTaxEyebrow}
@@ -478,6 +574,26 @@ function InvestmentAdvisoryCard({
   }
 
   return null;
+}
+
+function PrinterIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M6 9V2h12v7" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" rx="1" />
+    </svg>
+  );
 }
 
 function LightbulbIcon() {

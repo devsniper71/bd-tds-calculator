@@ -2,10 +2,17 @@
 
 import {
   CalculatorInput,
-  CATEGORY_THRESHOLDS,
   TaxpayerCategory,
+  MinTaxArea,
+  FilingQuarter,
   formatBDT,
+  formatPercent,
 } from "@/lib/tax-calculator";
+import {
+  getYearConfig,
+  ASSESSMENT_YEAR_IDS,
+  TAX_YEARS,
+} from "@/lib/tax-years";
 import { useTranslation } from "@/lib/i18n";
 import { Field } from "./ui/Field";
 import { MoneyInput } from "./ui/MoneyInput";
@@ -26,12 +33,13 @@ const ALL_CATEGORIES: TaxpayerCategory[] = [
 ];
 
 export function CalculatorForm({ input, onChange }: Props) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const set = (patch: Partial<CalculatorInput>) =>
     onChange({ ...input, ...patch });
   const setIncome = (patch: Partial<CalculatorInput["income"]>) =>
     onChange({ ...input, income: { ...input.income, ...patch } });
 
+  const cfg = getYearConfig(input.assessmentYear);
   const isNRForeigner = input.category === "non_resident_foreigner";
 
   return (
@@ -43,23 +51,67 @@ export function CalculatorForm({ input, onChange }: Props) {
         subtitle={t.sections.profileSub}
       >
         <div className="space-y-3">
+          {/* Assessment year — drives every rate below */}
+          <div>
+            <span className="label-eyebrow block mb-2">
+              {t.fields.assessmentYear}
+            </span>
+            <div
+              role="group"
+              aria-label={t.fields.assessmentYear}
+              className="flex flex-wrap gap-2"
+            >
+              {ASSESSMENT_YEAR_IDS.map((id) => {
+                const yc = TAX_YEARS[id];
+                const checked = input.assessmentYear === id;
+                return (
+                  <button
+                    type="button"
+                    key={id}
+                    onClick={() => set({ assessmentYear: id })}
+                    aria-pressed={checked}
+                    className={`chip-button rounded-full border px-3.5 py-1.5 text-[12.5px] num ${
+                      checked
+                        ? "border-emerald bg-emerald-deep text-paper"
+                        : "border-rule bg-paper/60 text-muted hover:border-emerald/40 hover:text-ink"
+                    }`}
+                  >
+                    {yc.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted/90 italic mt-2 leading-relaxed">
+              {cfg.statute}
+              {" · "}
+              {cfg.incomeYear}
+            </p>
+          </div>
+
+          <div className="rule-h" />
+
           <div>
             <span className="label-eyebrow block mb-2">
               {t.fields.category}
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div
+              role="group"
+              aria-label={t.fields.category}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+            >
               {ALL_CATEGORIES.map((value) => {
                 const checked = input.category === value;
-                const threshold = CATEGORY_THRESHOLDS[value];
+                const threshold = cfg.thresholds[value];
                 return (
                   <button
                     type="button"
                     key={value}
                     onClick={() => set({ category: value })}
+                    aria-pressed={checked}
                     className={`chip-button text-left rounded-md border px-3 py-2.5 ${
                       checked
                         ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
-                        : "border-rule bg-paper hover:border-emerald/40 hover:bg-white"
+                        : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
                     }`}
                   >
                     <span className="block text-[13.5px] leading-snug">
@@ -68,7 +120,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                     <span className="block text-[11px] text-muted mt-0.5 num">
                       {value === "non_resident_foreigner"
                         ? t.categories.flatRate
-                        : `${t.categories.thresholdUpto} ${formatBDT(threshold, locale)}`}
+                        : `${t.categories.thresholdUpto} ${formatBDT(threshold)}`}
                     </span>
                   </button>
                 );
@@ -105,6 +157,51 @@ export function CalculatorForm({ input, onChange }: Props) {
                   ariaLabel={t.fields.newTaxpayer}
                 />
               </Field>
+
+              {/* Location — only affects the area-based minimum tax (AY ≤ 2025-26) */}
+              {cfg.areaBasedMinTax && (
+                <div>
+                  <span className="label-eyebrow block mb-2">
+                    {t.fields.minTaxArea}
+                  </span>
+                  <div
+                    role="group"
+                    aria-label={t.fields.minTaxArea}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-2"
+                  >
+                    {(
+                      [
+                        "dhaka_ctg",
+                        "other_city",
+                        "other",
+                      ] as MinTaxArea[]
+                    ).map((area) => {
+                      const checked =
+                        (input.minTaxArea ?? "dhaka_ctg") === area;
+                      return (
+                        <button
+                          type="button"
+                          key={area}
+                          onClick={() => set({ minTaxArea: area })}
+                          aria-pressed={checked}
+                          className={`chip-button text-left rounded-md border px-3 py-2 ${
+                            checked
+                              ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
+                              : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
+                          }`}
+                        >
+                          <span className="block text-[12.5px] leading-snug">
+                            {t.minTaxAreas[area]}
+                          </span>
+                          <span className="block text-[10.5px] text-muted mt-0.5 num">
+                            {formatBDT(cfg.minimumTaxByArea[area])}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -243,21 +340,91 @@ export function CalculatorForm({ input, onChange }: Props) {
             onChange={(v) => setIncome({ dividendIncome: v })}
           />
         </Field>
+
+        <div className="rule-h !my-5" />
+        <span className="label-eyebrow block">{t.fields.exemptGroup}</span>
+
+        <Field
+          label={t.fields.itesIncome}
+          hint={t.fields.itesIncomeHint}
+          suffix={t.fields.suffix.perYear}
+        >
+          <MoneyInput
+            value={input.income.itesIncome}
+            onChange={(v) => setIncome({ itesIncome: v })}
+          />
+        </Field>
+
+        <Field
+          label={t.fields.remittanceIncome}
+          hint={t.fields.remittanceIncomeHint}
+          suffix={t.fields.suffix.perYear}
+        >
+          <MoneyInput
+            value={input.income.remittanceIncome}
+            onChange={(v) => setIncome({ remittanceIncome: v })}
+          />
+        </Field>
+
+        <p className="text-[11px] text-muted/90 italic leading-relaxed">
+          {t.fields.exemptNote}
+        </p>
       </Section>
 
       {/* ────── Section 4: Investment & TDS ────── */}
       <Section number="④" title={t.sections.investment}>
         {!isNRForeigner && (
-          <Field
-            label={t.fields.investment}
-            hint={t.fields.investmentHint}
-            suffix={t.fields.suffix.perYear}
-          >
-            <MoneyInput
-              value={input.actualInvestment}
-              onChange={(v) => set({ actualInvestment: v })}
-            />
-          </Field>
+          <>
+            <Field
+              label={t.fields.investment}
+              hint={t.fields.investmentHint}
+              suffix={t.fields.suffix.perYear}
+            >
+              <MoneyInput
+                value={input.actualInvestment}
+                onChange={(v) => set({ actualInvestment: v })}
+              />
+            </Field>
+
+            <details className="group -mt-1 mb-1">
+              <summary className="cursor-pointer list-none inline-flex items-center gap-1.5 text-[11.5px] text-emerald hover:text-emerald-deep transition-colors select-none">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden
+                >
+                  <polyline points="4,3 8,6 4,9" />
+                </svg>
+                {t.investmentHelp.title}
+              </summary>
+              <div className="mt-2.5 pl-1 border-l-2 border-emerald-soft ml-1">
+                <p className="text-[11.5px] text-muted leading-relaxed mb-2 pl-3">
+                  {t.investmentHelp.intro}
+                </p>
+                <ul className="space-y-1 pl-3">
+                  {t.investmentHelp.items.map((item) => (
+                    <li
+                      key={item}
+                      className="text-[11.5px] text-ink/80 leading-relaxed flex gap-2"
+                    >
+                      <span className="text-emerald mt-[3px] shrink-0">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] text-muted italic leading-relaxed mt-2.5 pl-3">
+                  {t.investmentHelp.footnote}
+                </p>
+              </div>
+            </details>
+          </>
         )}
 
         <Field
@@ -270,6 +437,64 @@ export function CalculatorForm({ input, onChange }: Props) {
             onChange={(v) => set({ taxAlreadyDeducted: v })}
           />
         </Field>
+
+        {/* Year-round filing incentive — provisional, AY 2026-27 only */}
+        {!isNRForeigner && cfg.filingIncentive && (
+          <div className="pt-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="label-eyebrow">{t.filing.label}</span>
+              {cfg.filingIncentive.provisional && (
+                <span className="rounded-full border border-ember/40 text-ember bg-ember/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] font-semibold">
+                  Provisional
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted mb-2 leading-relaxed">
+              {t.filing.hint}
+            </p>
+            <div
+              role="group"
+              aria-label={t.filing.label}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+            >
+              {(["q1", "q2", "q3", "q4"] as FilingQuarter[]).map((q) => {
+                const fi = cfg.filingIncentive!;
+                const checked = (input.filingQuarter ?? "q2") === q;
+                let note: string;
+                if (q === "q1")
+                  note = `−${formatPercent(fi.earlyRebateRate, 0)} · ≤ ${formatBDT(fi.earlyRebateCap)}`;
+                else if (q === "q3")
+                  note = `+${formatPercent(fi.lateQ3Rate, 0)} · ≥ ${formatBDT(fi.lateQ3Floor)}`;
+                else if (q === "q4")
+                  note = `+${formatPercent(fi.lateQ4Rate, 0)} · ≥ ${formatBDT(fi.lateQ4Floor)}`;
+                else note = t.filing.q2Note;
+                return (
+                  <button
+                    type="button"
+                    key={q}
+                    onClick={() => set({ filingQuarter: q })}
+                    aria-pressed={checked}
+                    className={`chip-button text-left rounded-md border px-2.5 py-2 ${
+                      checked
+                        ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
+                        : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
+                    }`}
+                  >
+                    <span className="block text-[12px] leading-snug">
+                      {t.filing.quarters[q]}
+                    </span>
+                    <span className="block text-[9.5px] text-muted mt-0.5 num">
+                      {note}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10.5px] text-muted/90 italic mt-2 leading-relaxed">
+              {t.filing.provisional}
+            </p>
+          </div>
+        )}
       </Section>
 
       {/* ────── Section 5: Wealth — collapsed by default ────── */}
@@ -302,7 +527,10 @@ export function CalculatorForm({ input, onChange }: Props) {
             />
           </Field>
 
-          <Field label={t.fields.largeProperty}>
+          <Field
+            label={t.fields.largeProperty}
+            hint={t.fields.largePropertyHint}
+          >
             <Toggle
               checked={!!input.ownsLargeProperty}
               onChange={(v) => set({ ownsLargeProperty: v })}
