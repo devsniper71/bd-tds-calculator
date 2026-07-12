@@ -1,23 +1,29 @@
 /**
  * Bangladesh Income Tax (TDS) Calculator — core engine
  *
- * Assessment Year 2026-2027 & 2027-2028 (Income Year 2025-2026 / 2026-2027)
+ * Multi-year: all rates live in `lib/tax-years.ts`, keyed by Assessment Year.
+ * This engine is year-agnostic — it reads the config for `input.assessmentYear`
+ * and computes from that. Adding a new year needs no change here.
  *
- * Statutory basis:
+ * Statutory basis (see each year's `sources`):
  *   • Income Tax Act 2023 — §§ 21, 76, 78, 153, 166, 174, 264, 265
- *   • Finance Ordinance 2025 (gazetted 22 June 2025)
+ *   • Finance Act 2023 / Finance Act 2024 / Finance Ordinance 2025
  */
+
+import {
+  getYearConfig,
+  DEFAULT_YEAR_ID,
+  type TaxpayerCategory,
+  type MinTaxArea,
+  type FilingQuarter,
+  type FilingIncentive,
+} from "./tax-years";
+
+export type { TaxpayerCategory, MinTaxArea, FilingQuarter };
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-export type TaxpayerCategory =
-  | "general_male"
-  | "female_or_senior"
-  | "disabled_or_third_gender"
-  | "freedom_fighter"
-  | "non_resident_foreigner";
 
 export interface IncomeComponents {
   basicMonthly: number;
@@ -32,9 +38,13 @@ export interface IncomeComponents {
   otherEmploymentIncome: number;
   otherIncome: number;
   dividendIncome: number;
+  /** Tax-exempt (recorded on the return but not taxed) — see notes in the engine. */
+  itesIncome: number; // IT/ITES / freelance export income (Sixth Sch. ¶21)
+  remittanceIncome: number; // wage-earner remittance / foreign income earned abroad (¶17)
 }
 
 export interface CalculatorInput {
+  assessmentYear: string;
   category: TaxpayerCategory;
   disabledChildren: number;
   income: IncomeComponents;
@@ -44,10 +54,13 @@ export interface CalculatorInput {
   ownsMultipleCars?: boolean;
   ownsLargeProperty?: boolean;
   isNewTaxpayer?: boolean;
+  /** Only relevant for years with area-based minimum tax (AY ≤ 2025-26). */
+  minTaxArea?: MinTaxArea;
+  /** Return-filing quarter — drives the (provisional) year-round filing incentive. */
+  filingQuarter?: FilingQuarter;
 }
 
 export interface SlabResult {
-  labelKey: string;
   rangeFrom: number;
   rangeTo: number | null;
   rate: number;
@@ -56,6 +69,8 @@ export interface SlabResult {
 }
 
 export interface CalculatorResult {
+  assessmentYearId: string;
+
   annualBasic: number;
   annualHouseRent: number;
   annualMedical: number;
@@ -72,18 +87,19 @@ export interface CalculatorResult {
   taxableDividend: number;
   grossAnnualIncome: number;
 
+  // Exempt income — recorded for the return but excluded from taxable income.
+  itesIncome: number;
+  remittanceIncome: number;
+  exemptIncome: number;
+
   salaryExemption: number;
+  salaryExemptionCap: number;
   taxableIncome: number;
 
   taxFreeThreshold: number;
   slabBreakdown: SlabResult[];
   grossTax: number;
 
-  twentyPercentOfTaxable: number;
-  maxAllowableInvestment: number;
-  eligibleInvestment: number;
-  rebateBy3PercentOfTaxable: number;
-  rebateBy15PercentOfInvestment: number;
   investmentRebate: number;
 
   taxAfterRebate: number;
@@ -93,13 +109,18 @@ export interface CalculatorResult {
   annualTaxPayable: number;
   monthlyTDS: number;
 
+  // Year-round filing incentive (provisional; only when the year has one)
+  filingQuarter: FilingQuarter | null;
+  filingRebate: number;
+  filingSurcharge: number;
+  taxAfterFilingIncentive: number;
+
   taxAlreadyDeducted: number;
   taxDue: number;
   effectiveTaxRate: number;
 
   // Investment planning advisory
   maxPossibleRebate: number;
-  investmentForMaxRebate: number;
   additionalInvestmentNeeded: number;
   possibleTaxSavings: number;
   atMaxRebate: boolean;
@@ -109,86 +130,80 @@ export interface CalculatorResult {
 }
 
 // ---------------------------------------------------------------------------
-// Rate tables
-// ---------------------------------------------------------------------------
-
-export const CATEGORY_THRESHOLDS: Record<TaxpayerCategory, number> = {
-  general_male: 375_000,
-  female_or_senior: 425_000,
-  disabled_or_third_gender: 500_000,
-  freedom_fighter: 525_000,
-  non_resident_foreigner: 0,
-};
-
-export const SLABS_AFTER_THRESHOLD: ReadonlyArray<readonly [number, number]> = [
-  [300_000, 0.10],
-  [400_000, 0.15],
-  [500_000, 0.20],
-  [2_000_000, 0.25],
-  [Infinity, 0.30],
-];
-
-export const SURCHARGE_BRACKETS: ReadonlyArray<{
-  minWealth: number;
-  maxWealth: number;
-  rate: number;
-}> = [
-  { minWealth: 40_000_000, maxWealth: 100_000_000, rate: 0.10 },
-  { minWealth: 100_000_000, maxWealth: 200_000_000, rate: 0.20 },
-  { minWealth: 200_000_000, maxWealth: 500_000_000, rate: 0.30 },
-  { minWealth: 500_000_000, maxWealth: Infinity, rate: 0.35 },
-];
-
-export const DIVIDEND_EXEMPTION = 25_000;
-export const INVESTMENT_CEILING = 10_000_000;
-export const REBATE_CEILING = 1_000_000;
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 const safe = (n: number | undefined | null) =>
   Number.isFinite(n as number) && (n as number) > 0 ? (n as number) : 0;
 
-export type LocaleCode = "en" | "bn";
-
-const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-
-/** Convert ASCII digits in a string to Bengali (Bangla) numerals. */
-export function toBengaliNumerals(s: string): string {
-  return s.replace(/[0-9]/g, (d) => BENGALI_DIGITS[Number(d)]);
-}
-
-export function formatBDT(
-  amount: number,
-  locale: LocaleCode = "en",
-  decimals = 0
-): string {
-  if (!Number.isFinite(amount)) return locale === "bn" ? "৳ ০" : "৳ 0";
+/** Format an amount as Bangladeshi Taka using the Indian grouping (lakh/crore). */
+export function formatBDT(amount: number, decimals = 0): string {
+  if (!Number.isFinite(amount)) return "৳ 0";
   const negative = amount < 0;
   const abs = Math.abs(amount);
-  let formatted = new Intl.NumberFormat("en-IN", {
+  const formatted = new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(abs);
-  if (locale === "bn") formatted = toBengaliNumerals(formatted);
   return `${negative ? "−" : ""}৳ ${formatted}`;
 }
 
-export function formatPercent(
-  rate: number,
-  locale: LocaleCode = "en",
-  decimals = 2
-): string {
-  let s = `${(rate * 100).toFixed(decimals)}%`;
-  if (locale === "bn") s = toBengaliNumerals(s);
-  return s;
+export function formatPercent(rate: number, decimals = 2): string {
+  return `${(rate * 100).toFixed(decimals)}%`;
 }
 
-export function formatNumber(n: number, locale: LocaleCode = "en"): string {
-  let s = new Intl.NumberFormat("en-IN").format(n);
-  if (locale === "bn") s = toBengaliNumerals(s);
-  return s;
+export function formatNumber(n: number): string {
+  return new Intl.NumberFormat("en-IN").format(n);
+}
+
+// Year-round filing incentive — early filing (Q1) rebate vs late (Q3/Q4)
+// surcharge. Applies at return-filing time, so it adjusts the final liability
+// but NOT the monthly TDS (which is deducted through the year). Min-tax-safe.
+function computeFilingIncentive(
+  filingIncentive: FilingIncentive | undefined,
+  quarter: FilingQuarter | undefined,
+  annualTaxPayable: number,
+  minimumTax: number
+) {
+  if (!filingIncentive || !quarter || annualTaxPayable <= 0) {
+    return {
+      filingQuarter: filingIncentive && quarter ? quarter : null,
+      filingRebate: 0,
+      filingSurcharge: 0,
+      taxAfterFilingIncentive: annualTaxPayable,
+    };
+  }
+  let filingRebate = 0;
+  let filingSurcharge = 0;
+  if (quarter === "q1") {
+    filingRebate = Math.min(
+      annualTaxPayable * filingIncentive.earlyRebateRate,
+      filingIncentive.earlyRebateCap
+    );
+  } else if (quarter === "q3") {
+    filingSurcharge = Math.max(
+      annualTaxPayable * filingIncentive.lateQ3Rate,
+      filingIncentive.lateQ3Floor
+    );
+  } else if (quarter === "q4") {
+    filingSurcharge = Math.max(
+      annualTaxPayable * filingIncentive.lateQ4Rate,
+      filingIncentive.lateQ4Floor
+    );
+  }
+  let taxAfterFilingIncentive = annualTaxPayable - filingRebate + filingSurcharge;
+  // The early rebate cannot push the payable below the minimum tax floor.
+  if (filingRebate > 0) {
+    taxAfterFilingIncentive = Math.max(taxAfterFilingIncentive, minimumTax);
+    // Report only the rebate actually applied, so the breakdown reconciles.
+    filingRebate = annualTaxPayable - taxAfterFilingIncentive;
+  }
+  return {
+    filingQuarter: quarter,
+    filingRebate,
+    filingSurcharge,
+    taxAfterFilingIncentive,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -196,6 +211,7 @@ export function formatNumber(n: number, locale: LocaleCode = "en"): string {
 // ---------------------------------------------------------------------------
 
 export function calculate(input: CalculatorInput): CalculatorResult {
+  const cfg = getYearConfig(input.assessmentYear);
   const i = input.income;
   const isNonResidentForeigner = input.category === "non_resident_foreigner";
 
@@ -204,15 +220,22 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   const annualMedical = safe(i.medicalMonthly) * 12;
   const annualConveyance = safe(i.conveyanceMonthly) * 12;
   const annualOtherAllowance = safe(i.otherAllowanceMonthly) * 12;
-  const totalFestivalBonuses =
-    safe(i.festivalBonus1) + safe(i.festivalBonus2);
+  const totalFestivalBonuses = safe(i.festivalBonus1) + safe(i.festivalBonus2);
   const performanceBonus = safe(i.performanceBonus);
   const overtime = safe(i.overtime);
   const otherEmploymentIncome = safe(i.otherEmploymentIncome);
   const otherIncome = safe(i.otherIncome);
   const dividendIncome = safe(i.dividendIncome);
 
-  const dividendExemption = Math.min(dividendIncome, DIVIDEND_EXEMPTION);
+  // Fully exempt income — recorded but deliberately kept OUT of every taxable
+  // figure (gross, taxable, slabs). IT/ITES freelance export income (Sixth
+  // Schedule ¶21, exempt to 30 Jun 2027) and wage-earner remittance / foreign
+  // income earned abroad (¶17) — both conditional on banking-channel receipt.
+  const itesIncome = safe(i.itesIncome);
+  const remittanceIncome = safe(i.remittanceIncome);
+  const exemptIncome = itesIncome + remittanceIncome;
+
+  const dividendExemption = Math.min(dividendIncome, cfg.dividendExemption);
   const taxableDividend = Math.max(0, dividendIncome - dividendExemption);
 
   const totalEmploymentIncome =
@@ -226,20 +249,19 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     overtime +
     otherEmploymentIncome;
 
-  const grossAnnualIncome =
-    totalEmploymentIncome + otherIncome + dividendIncome;
+  const grossAnnualIncome = totalEmploymentIncome + otherIncome + dividendIncome;
 
-  // Non-resident foreigner: flat 30%
+  // Non-resident foreigner: flat rate, no threshold / rebate.
   if (isNonResidentForeigner) {
-    const taxableIncome =
-      totalEmploymentIncome + otherIncome + taxableDividend;
-    const grossTax = taxableIncome * 0.30;
-    const minimumTax = taxableIncome > 0 ? 5_000 : 0;
+    const taxableIncome = totalEmploymentIncome + otherIncome + taxableDividend;
+    const grossTax = taxableIncome * cfg.nonResidentRate;
+    const minimumTax = taxableIncome > 0 ? cfg.minimumTaxByArea.dhaka_ctg : 0;
     const annualTaxPayable = Math.max(grossTax, minimumTax);
     const monthlyTDS = annualTaxPayable / 12;
     const taxAlreadyDeducted = safe(input.taxAlreadyDeducted);
 
     return {
+      assessmentYearId: cfg.id,
       annualBasic,
       annualHouseRent,
       annualMedical,
@@ -255,25 +277,23 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       dividendExemption,
       taxableDividend,
       grossAnnualIncome,
+      itesIncome,
+      remittanceIncome,
+      exemptIncome,
       salaryExemption: 0,
+      salaryExemptionCap: cfg.salaryExemptionCap,
       taxableIncome,
       taxFreeThreshold: 0,
       slabBreakdown: [
         {
-          labelKey: "slab.flat30",
           rangeFrom: 0,
           rangeTo: null,
-          rate: 0.30,
+          rate: cfg.nonResidentRate,
           taxableInThisSlab: taxableIncome,
           taxAmount: grossTax,
         },
       ],
       grossTax,
-      twentyPercentOfTaxable: 0,
-      maxAllowableInvestment: 0,
-      eligibleInvestment: 0,
-      rebateBy3PercentOfTaxable: 0,
-      rebateBy15PercentOfInvestment: 0,
       investmentRebate: 0,
       taxAfterRebate: grossTax,
       surcharge: 0,
@@ -281,12 +301,15 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       minimumTax,
       annualTaxPayable,
       monthlyTDS,
+      filingQuarter: null,
+      filingRebate: 0,
+      filingSurcharge: 0,
+      taxAfterFilingIncentive: annualTaxPayable,
       taxAlreadyDeducted,
       taxDue: annualTaxPayable - taxAlreadyDeducted,
       effectiveTaxRate:
         grossAnnualIncome > 0 ? annualTaxPayable / grossAnnualIncome : 0,
       maxPossibleRebate: 0,
-      investmentForMaxRebate: 0,
       additionalInvestmentNeeded: 0,
       possibleTaxSavings: 0,
       atMaxRebate: true,
@@ -296,28 +319,24 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   }
 
   // Resident / NRI Bangladeshi
-  const salaryExemption = Math.min(totalEmploymentIncome / 3, 500_000);
+  const salaryExemption = Math.min(
+    totalEmploymentIncome * cfg.salaryExemptionFraction,
+    cfg.salaryExemptionCap
+  );
 
   const taxableIncome = Math.max(
     0,
-    totalEmploymentIncome +
-      otherIncome +
-      taxableDividend -
-      salaryExemption
+    totalEmploymentIncome + otherIncome + taxableDividend - salaryExemption
   );
 
-  let taxFreeThreshold = CATEGORY_THRESHOLDS[input.category];
-  const disabledChildren = Math.max(
-    0,
-    Math.floor(input.disabledChildren || 0)
-  );
+  let taxFreeThreshold = cfg.thresholds[input.category];
+  const disabledChildren = Math.max(0, Math.floor(input.disabledChildren || 0));
   if (disabledChildren > 0) {
-    taxFreeThreshold += disabledChildren * 50_000;
+    taxFreeThreshold += disabledChildren * cfg.disabledChildThresholdBump;
   }
 
   const slabBreakdown: SlabResult[] = [];
   slabBreakdown.push({
-    labelKey: "slab.threshold",
     rangeFrom: 0,
     rangeTo: taxFreeThreshold,
     rate: 0,
@@ -328,10 +347,9 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   let remainingIncome = Math.max(0, taxableIncome - taxFreeThreshold);
   let cursor = taxFreeThreshold;
   let grossTax = 0;
-  const labelKeys = ["slab.s1", "slab.s2", "slab.s3", "slab.s4", "slab.s5"];
 
-  for (let idx = 0; idx < SLABS_AFTER_THRESHOLD.length; idx++) {
-    const [width, rate] = SLABS_AFTER_THRESHOLD[idx];
+  for (let idx = 0; idx < cfg.slabs.length; idx++) {
+    const [width, rate] = cfg.slabs[idx];
     const isLast = !Number.isFinite(width);
     const taxableInThisSlab = isLast
       ? remainingIncome
@@ -340,7 +358,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     grossTax += taxAmount;
 
     slabBreakdown.push({
-      labelKey: labelKeys[idx],
       rangeFrom: cursor,
       rangeTo: isLast ? null : cursor + width,
       rate,
@@ -357,21 +374,22 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     if (remainingIncome <= 0 && !isLast) break;
   }
 
-  const twentyPercentOfTaxable = taxableIncome * 0.20;
+  const twentyPercentOfTaxable = taxableIncome * cfg.investmentTaxableFraction;
   const maxAllowableInvestment = Math.min(
     twentyPercentOfTaxable,
-    INVESTMENT_CEILING
+    cfg.investmentCeiling
   );
   const eligibleInvestment = Math.min(
     safe(input.actualInvestment),
     maxAllowableInvestment
   );
-  const rebateBy3PercentOfTaxable = taxableIncome * 0.03;
-  const rebateBy15PercentOfInvestment = eligibleInvestment * 0.15;
+  const rebateBy3PercentOfTaxable = taxableIncome * cfg.rebateRateOfTaxable;
+  const rebateBy15PercentOfInvestment =
+    eligibleInvestment * cfg.rebateRateOfInvestment;
   let investmentRebate = Math.min(
     rebateBy3PercentOfTaxable,
     rebateBy15PercentOfInvestment,
-    REBATE_CEILING
+    cfg.rebateCeiling
   );
   investmentRebate = Math.min(investmentRebate, grossTax);
 
@@ -380,65 +398,79 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   let surchargeRate = 0;
   const nw = safe(input.netWealth);
   if (nw > 0) {
-    for (const b of SURCHARGE_BRACKETS) {
-      if (nw >= b.minWealth && nw < b.maxWealth) {
+    // Brackets are lower-exclusive / upper-inclusive: net wealth EXCEEDING a
+    // floor (e.g. > 4 crore) attracts the rate, up to and including the ceiling.
+    for (const b of cfg.surchargeBrackets) {
+      if (nw > b.minWealth && nw <= b.maxWealth) {
         surchargeRate = b.rate;
         break;
       }
-      if (nw >= b.maxWealth) surchargeRate = b.rate;
-    }
-    if (
-      surchargeRate === 0 &&
-      input.ownsMultipleCars &&
-      input.ownsLargeProperty
-    ) {
-      surchargeRate = 0.10;
     }
   }
-  const surcharge = taxAfterRebate * surchargeRate;
+  // Asset-based trigger: owning MORE than one car OR a house > 8,000 sq ft —
+  // either condition alone imposes the minimum surcharge, even below Tk 4 crore.
+  if (
+    surchargeRate === 0 &&
+    (input.ownsMultipleCars || input.ownsLargeProperty)
+  ) {
+    surchargeRate = cfg.assetSurchargeRate;
+  }
+  // Minimum tax — area-based through AY 2025-26, flat after.
+  const areaKey: MinTaxArea = input.minTaxArea ?? "dhaka_ctg";
+  const baseMinimumTax = input.isNewTaxpayer
+    ? cfg.minimumTaxNewTaxpayer
+    : cfg.minimumTaxByArea[areaKey];
+  const minimumTax = taxableIncome > taxFreeThreshold ? baseMinimumTax : 0;
 
-  const minimumTax =
-    taxableIncome > taxFreeThreshold
-      ? input.isNewTaxpayer
-        ? 1_000
-        : 5_000
-      : 0;
+  // Statutory order: regular tax less rebate, floored at the minimum tax, THEN
+  // the net-wealth surcharge is added on top. Whether the minimum tax is part of
+  // the surcharge base flips between AY 2025-26 (in) and AY 2026-27 (out).
+  const taxBeforeSurcharge = Math.max(taxAfterRebate, minimumTax);
+  const surchargeBase = cfg.minTaxInSurchargeBase
+    ? taxBeforeSurcharge
+    : taxAfterRebate;
+  const surcharge = surchargeBase * surchargeRate;
 
-  const annualTaxPayable = Math.max(
-    taxAfterRebate + surcharge,
-    minimumTax
-  );
+  const annualTaxPayable = taxBeforeSurcharge + surcharge;
   const monthlyTDS = annualTaxPayable / 12;
   const taxAlreadyDeducted = safe(input.taxAlreadyDeducted);
 
+  const filing = computeFilingIncentive(
+    cfg.filingIncentive,
+    input.filingQuarter,
+    annualTaxPayable,
+    minimumTax
+  );
+
   // ─── Investment planning advisory ────────────────────────────────
-  // What's the maximum rebate this taxpayer could claim, given their taxable income?
   const maxPossibleRebate = Math.min(
-    taxableIncome * 0.03,
-    REBATE_CEILING,
+    taxableIncome * cfg.rebateRateOfTaxable,
+    cfg.rebateCeiling,
     grossTax
   );
-  // Minimum investment required to reach that max rebate (15% × investment = rebate).
   const investmentForMaxRebate =
-    maxPossibleRebate > 0 ? maxPossibleRebate / 0.15 : 0;
+    maxPossibleRebate > 0 ? maxPossibleRebate / cfg.rebateRateOfInvestment : 0;
   const additionalInvestmentNeeded = Math.max(
     0,
     investmentForMaxRebate - safe(input.actualInvestment)
   );
-  // Simulate the tax payable if the taxpayer invested enough to claim max rebate.
   const simulatedTaxAfterRebate = Math.max(0, grossTax - maxPossibleRebate);
-  const simulatedSurcharge = simulatedTaxAfterRebate * surchargeRate;
-  const simulatedAnnualTax = Math.max(
-    simulatedTaxAfterRebate + simulatedSurcharge,
+  const simulatedTaxBeforeSurcharge = Math.max(
+    simulatedTaxAfterRebate,
     minimumTax
   );
+  const simulatedSurchargeBase = cfg.minTaxInSurchargeBase
+    ? simulatedTaxBeforeSurcharge
+    : simulatedTaxAfterRebate;
+  const simulatedAnnualTax =
+    simulatedTaxBeforeSurcharge + simulatedSurchargeBase * surchargeRate;
   const possibleTaxSavings = Math.max(0, annualTaxPayable - simulatedAnnualTax);
   const atMaxRebate = additionalInvestmentNeeded <= 1; // rounding tolerance
   const constrainedByMinimumTax =
-    minimumTax > 0 &&
-    simulatedTaxAfterRebate + simulatedSurcharge < minimumTax;
+    minimumTax > 0 && simulatedTaxAfterRebate < minimumTax;
 
   return {
+    assessmentYearId: cfg.id,
     annualBasic,
     annualHouseRent,
     annualMedical,
@@ -454,16 +486,15 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     dividendExemption,
     taxableDividend,
     grossAnnualIncome,
+    itesIncome,
+    remittanceIncome,
+    exemptIncome,
     salaryExemption,
+    salaryExemptionCap: cfg.salaryExemptionCap,
     taxableIncome,
     taxFreeThreshold,
     slabBreakdown,
     grossTax,
-    twentyPercentOfTaxable,
-    maxAllowableInvestment,
-    eligibleInvestment,
-    rebateBy3PercentOfTaxable,
-    rebateBy15PercentOfInvestment,
     investmentRebate,
     taxAfterRebate,
     surcharge,
@@ -471,12 +502,17 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     minimumTax,
     annualTaxPayable,
     monthlyTDS,
+    filingQuarter: filing.filingQuarter,
+    filingRebate: filing.filingRebate,
+    filingSurcharge: filing.filingSurcharge,
+    taxAfterFilingIncentive: filing.taxAfterFilingIncentive,
     taxAlreadyDeducted,
-    taxDue: annualTaxPayable - taxAlreadyDeducted,
+    taxDue: filing.taxAfterFilingIncentive - taxAlreadyDeducted,
+    // Reflects the core statutory liability; the filing-timing incentive is a
+    // settlement-time adjustment and is intentionally excluded from this rate.
     effectiveTaxRate:
       grossAnnualIncome > 0 ? annualTaxPayable / grossAnnualIncome : 0,
     maxPossibleRebate,
-    investmentForMaxRebate,
     additionalInvestmentNeeded,
     possibleTaxSavings,
     atMaxRebate,
@@ -486,6 +522,7 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 }
 
 export const DEFAULT_INPUT: CalculatorInput = {
+  assessmentYear: DEFAULT_YEAR_ID,
   category: "general_male",
   disabledChildren: 0,
   income: {
@@ -501,6 +538,8 @@ export const DEFAULT_INPUT: CalculatorInput = {
     otherEmploymentIncome: 0,
     otherIncome: 0,
     dividendIncome: 0,
+    itesIncome: 0,
+    remittanceIncome: 0,
   },
   actualInvestment: 0,
   taxAlreadyDeducted: 0,
@@ -508,4 +547,6 @@ export const DEFAULT_INPUT: CalculatorInput = {
   ownsMultipleCars: false,
   ownsLargeProperty: false,
   isNewTaxpayer: false,
+  minTaxArea: "dhaka_ctg",
+  filingQuarter: "q2", // neutral by default — no rebate or surcharge applied
 };

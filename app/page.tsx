@@ -3,28 +3,27 @@
 import { useMemo, useState } from "react";
 import { CalculatorForm } from "@/components/CalculatorForm";
 import { ResultsPanel } from "@/components/ResultsPanel";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   calculate,
   DEFAULT_INPUT,
-  CATEGORY_THRESHOLDS,
-  SLABS_AFTER_THRESHOLD,
   formatBDT,
-  toBengaliNumerals,
   type TaxpayerCategory,
-  type LocaleCode,
 } from "@/lib/tax-calculator";
+import { getYearConfig, type TaxYearConfig } from "@/lib/tax-years";
+import { FAQ } from "@/lib/faq";
 import { useTranslation, tmpl } from "@/lib/i18n";
 
 export default function HomePage() {
   const [input, setInput] = useState(DEFAULT_INPUT);
   const result = useMemo(() => calculate(input), [input]);
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
+  const cfg = getYearConfig(input.assessmentYear);
 
   return (
     <main className="min-h-dvh">
       {/* ────── Masthead ────── */}
-      <header className="border-b border-rule bg-paper/85 backdrop-blur-md sticky top-0 z-30 no-print">
+      <header className="border-b border-rule glass-header sticky top-0 z-30 no-print">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2 sm:gap-3 min-w-0">
             <BrandMark text={t.brand} size="sm" />
@@ -32,15 +31,19 @@ export default function HomePage() {
               {t.tagline}
             </span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <LanguageToggle />
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <span className="num text-[10.5px] text-muted border border-rule rounded-full px-2 py-1 leading-none">
+              {cfg.label}
+            </span>
+            <ThemeToggle />
             <a
-              href="https://nbr.gov.bd"
+              href="https://github.com/meetRaselAhmed/ayakor"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11.5px] text-muted hover:text-emerald transition-colors tracking-wide px-2 py-1.5 rounded-md hover:bg-emerald-soft"
+              aria-label="View source on GitHub"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
             >
-              {t.nav.nbr} ↗
+              <GitHubIcon />
             </a>
           </div>
         </div>
@@ -60,26 +63,20 @@ export default function HomePage() {
             key={result.monthlyTDS}
             className="num text-[16px] font-medium text-white number-pop"
           >
-            {formatBDT(result.monthlyTDS, locale)}
+            {formatBDT(result.monthlyTDS)}
           </span>
         </div>
       </div>
 
       {/* ────── Hero ────── */}
-      <section className="border-b border-rule">
+      <section className="border-b border-rule no-print">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-8 sm:pb-10">
           <div className="grid grid-cols-12 gap-6 sm:gap-8 items-end">
             <div className="col-span-12 lg:col-span-8">
               <div className="label-eyebrow mb-3 sm:mb-4">
-                {t.hero.eyebrow}
+                {`Bangladesh · Assessment Year ${cfg.label.replace("AY ", "")}`}
               </div>
-              <h1
-                className={`font-head tracking-tightish text-ink font-light ${
-                  locale === "bn"
-                    ? "text-[30px] sm:text-[40px] lg:text-[48px] leading-[1.18]"
-                    : "text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02]"
-                }`}
-              >
+              <h1 className="font-head tracking-tightish text-ink font-light text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02]">
                 {t.hero.title.pre}{" "}
                 <span className="italic font-normal text-emerald-deep">
                   {t.hero.title.accent}
@@ -98,13 +95,13 @@ export default function HomePage() {
 
       {/* ────── Two-column layout ────── */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <div className="grid grid-cols-12 gap-x-8 lg:gap-x-10 gap-y-8 lg:gap-y-10">
-          <div className="col-span-12 lg:col-span-7">
+        <div className="calc-grid grid grid-cols-12 gap-x-8 lg:gap-x-10 gap-y-8 lg:gap-y-10">
+          <div className="col-span-12 lg:col-span-7 no-print">
             <CalculatorForm input={input} onChange={setInput} />
           </div>
           <div className="col-span-12 lg:col-span-5">
             <div className="lg:sticky lg:top-[72px]">
-              <ResultsPanel result={result} />
+              <ResultsPanel result={result} input={input} />
             </div>
           </div>
         </div>
@@ -116,13 +113,7 @@ export default function HomePage() {
           <div className="grid grid-cols-12 gap-6 sm:gap-8">
             <div className="col-span-12 lg:col-span-4">
               <div className="label-eyebrow mb-3">{t.reference.eyebrow}</div>
-              <h2
-                className={`font-head tracking-tightish text-ink mb-4 ${
-                  locale === "bn"
-                    ? "text-[22px] sm:text-[24px] leading-[1.3]"
-                    : "text-[24px] sm:text-[28px] leading-tight"
-                }`}
-              >
+              <h2 className="font-head tracking-tightish text-ink mb-4 text-[24px] sm:text-[28px] leading-tight">
                 {t.reference.title.pre}{" "}
                 <span className="italic">{t.reference.title.accent}</span>
                 {t.reference.title.post}
@@ -135,18 +126,24 @@ export default function HomePage() {
                 <span className="text-ink not-italic font-medium">
                   {t.categories[input.category]}
                 </span>
+                {" · "}
+                <span className="text-ink not-italic font-medium num">
+                  {cfg.label}
+                </span>
               </p>
             </div>
             <div className="col-span-12 lg:col-span-8">
-              <SlabReferenceTable
-                category={input.category}
-                locale={locale}
-                t={t}
-              />
+              <SlabReferenceTable cfg={cfg} category={input.category} t={t} />
             </div>
           </div>
         </div>
       </section>
+
+      {/* ────── Sources / legal references ────── */}
+      <SourcesSection cfg={cfg} t={t} />
+
+      {/* ────── FAQ ────── */}
+      <FaqSection t={t} />
 
       {/* ────── Footer ────── */}
       <footer className="border-t border-rule no-print">
@@ -184,9 +181,9 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col gap-2">
                 <ContactLink
-                  href="mailto:devsniper71@gmail.com"
+                  href="mailto:meetRaselAhmed@gmail.com"
                   icon={<MailIcon />}
-                  label="devsniper71@gmail.com"
+                  label="meetRaselAhmed@gmail.com"
                   breakAll
                 />
                 <ContactLink
@@ -195,9 +192,9 @@ export default function HomePage() {
                   label="+880 1782 449977"
                 />
                 <ContactLink
-                  href="https://github.com/devsniper71"
+                  href="https://github.com/meetRaselAhmed"
                   icon={<GitHubIcon />}
-                  label="github.com/devsniper71"
+                  label="github.com/meetRaselAhmed"
                 />
               </div>
             </div>
@@ -215,7 +212,7 @@ export default function HomePage() {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Brand mark — locale-aware wordmark with emerald dot accent
+// Brand mark — wordmark with emerald dot accent
 // ───────────────────────────────────────────────────────────────────────────
 
 function BrandMark({
@@ -313,7 +310,7 @@ function GitHubIcon() {
 
 // ───────────────────────────────────────────────────────────────────────────
 // Dynamic slab reference — derives rows from the rate engine.
-// Reflects the currently selected category + locale.
+// Reflects the currently selected category + assessment year.
 // ───────────────────────────────────────────────────────────────────────────
 
 interface Row {
@@ -324,8 +321,8 @@ interface Row {
 }
 
 function buildRows(
+  cfg: TaxYearConfig,
   category: TaxpayerCategory,
-  locale: LocaleCode,
   t: ReturnType<typeof useTranslation>["t"]
 ): Row[] {
   if (category === "non_resident_foreigner") {
@@ -333,18 +330,18 @@ function buildRows(
       {
         from: 0,
         to: null,
-        rate: 0.30,
+        rate: cfg.nonResidentRate,
         note: t.categories.non_resident_foreigner,
       },
     ];
   }
 
-  const threshold = CATEGORY_THRESHOLDS[category];
+  const threshold = cfg.thresholds[category];
   const rows: Row[] = [
     { from: 0, to: threshold, rate: null, note: t.reference.thresholdNote },
   ];
   let cursor = threshold;
-  for (const [width, rate] of SLABS_AFTER_THRESHOLD) {
+  for (const [width, rate] of cfg.slabs) {
     const isLast = !Number.isFinite(width);
     const to = isLast ? null : cursor + width;
 
@@ -355,13 +352,9 @@ function buildRows(
       const crores = width / 10_000_000;
       const lakhs = width / 100_000;
       if (crores >= 1 && Number.isInteger(crores)) {
-        const n =
-          locale === "bn" ? toBengaliNumerals(String(crores)) : String(crores);
-        note = tmpl(t.reference.nextCroreNote, { n });
+        note = tmpl(t.reference.nextCroreNote, { n: String(crores) });
       } else {
-        const n =
-          locale === "bn" ? toBengaliNumerals(String(lakhs)) : String(lakhs);
-        note = tmpl(t.reference.nextLakhNote, { n });
+        note = tmpl(t.reference.nextLakhNote, { n: String(lakhs) });
       }
     }
 
@@ -372,24 +365,23 @@ function buildRows(
 }
 
 function SlabReferenceTable({
+  cfg,
   category,
-  locale,
   t,
 }: {
+  cfg: TaxYearConfig;
   category: TaxpayerCategory;
-  locale: LocaleCode;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
-  const rows = buildRows(category, locale, t);
+  const rows = buildRows(cfg, category, t);
 
   const formatRate = (r: number | null) => {
     if (r === null) return t.reference.nilRate;
-    const pct = Math.round(r * 100);
-    return locale === "bn" ? `${toBengaliNumerals(String(pct))}%` : `${pct}%`;
+    return `${Math.round(r * 100)}%`;
   };
 
   return (
-    <div className="border border-rule rounded-xl overflow-hidden bg-surface card-lift">
+    <div className="border border-rule rounded-xl overflow-hidden glass card-lift">
       <table className="w-full">
         <thead>
           <tr className="bg-paper/60 border-b border-rule">
@@ -411,10 +403,8 @@ function SlabReferenceTable({
               className="border-b border-rule last:border-b-0 hover:bg-emerald-soft/40 transition-colors"
             >
               <td className="py-3 px-3 sm:px-4 num text-[12px] sm:text-[13px] text-ink">
-                {formatBDT(r.from, locale)} —{" "}
-                {r.to !== null
-                  ? formatBDT(r.to, locale)
-                  : t.reference.rangeAbove}
+                {formatBDT(r.from)} —{" "}
+                {r.to !== null ? formatBDT(r.to) : t.reference.rangeAbove}
               </td>
               <td className="py-3 px-3 sm:px-4 text-right num text-[12px] sm:text-[13px] font-medium text-emerald-deep">
                 {formatRate(r.rate)}
@@ -427,5 +417,155 @@ function SlabReferenceTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Sources — authoritative legal references for the selected assessment year.
+// Tax law changes yearly; each year carries its own citation list.
+// ───────────────────────────────────────────────────────────────────────────
+
+function SourcesSection({
+  cfg,
+  t,
+}: {
+  cfg: TaxYearConfig;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  return (
+    <section className="border-t border-rule no-print">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-10 sm:py-12">
+        <div className="grid grid-cols-12 gap-6 sm:gap-8">
+          <div className="col-span-12 lg:col-span-4">
+            <div className="label-eyebrow mb-3">{t.sources.eyebrow}</div>
+            <h2 className="font-head tracking-tightish text-ink mb-4 text-[24px] sm:text-[28px] leading-tight">
+              {t.sources.title.pre}{" "}
+              <span className="italic">{t.sources.title.accent}</span>
+              {t.sources.title.post}
+            </h2>
+            <p className="text-[13.5px] text-muted leading-relaxed mb-3">
+              {t.sources.body}
+            </p>
+            <p className="text-[12px] text-muted italic">
+              {t.sources.forYear}{" "}
+              <span className="text-ink not-italic font-medium num">
+                {cfg.label}
+              </span>{" "}
+              ·{" "}
+              <span className="text-ink not-italic">{cfg.statute}</span>
+            </p>
+          </div>
+
+          <div className="col-span-12 lg:col-span-8">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {cfg.sources.map((s) => (
+                <li key={s.url}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col gap-1 h-full rounded-xl border border-rule glass px-4 py-3 card-lift hover:border-emerald/40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <SourceBadge kind={s.kind} t={t} />
+                      <span className="text-[13px] text-ink font-medium leading-snug group-hover:text-emerald transition-colors">
+                        {s.label}
+                      </span>
+                      <span className="ml-auto text-muted group-hover:text-emerald transition-colors shrink-0 text-[12px]">
+                        ↗
+                      </span>
+                    </div>
+                    {s.note ? (
+                      <p className="text-[11px] text-muted leading-relaxed">
+                        {s.note}
+                      </p>
+                    ) : null}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// FAQ — accessible native <details> accordion. Content is shared with the
+// FAQPage JSON-LD in the layout (lib/faq.ts) for rich search results.
+// ───────────────────────────────────────────────────────────────────────────
+
+function FaqSection({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
+  return (
+    <section className="border-t border-rule no-print">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-10 sm:py-12">
+        <div className="grid grid-cols-12 gap-6 sm:gap-8">
+          <div className="col-span-12 lg:col-span-4">
+            <div className="label-eyebrow mb-3">{t.faq.eyebrow}</div>
+            <h2 className="font-head tracking-tightish text-ink text-[24px] sm:text-[28px] leading-tight">
+              {t.faq.title.pre}{" "}
+              <span className="italic">{t.faq.title.accent}</span>
+              {t.faq.title.post}
+            </h2>
+          </div>
+          <div className="col-span-12 lg:col-span-8">
+            <div className="border border-rule rounded-xl overflow-hidden glass">
+              {FAQ.map((item, i) => (
+                <details
+                  key={item.q}
+                  className="group border-b border-rule last:border-b-0"
+                  {...(i === 0 ? { open: true } : {})}
+                >
+                  <summary className="cursor-pointer list-none flex items-start gap-3 px-4 sm:px-5 py-3.5 hover:bg-emerald-soft/40 transition-colors">
+                    <span className="text-[14px] text-ink font-medium leading-snug flex-1">
+                      {item.q}
+                    </span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-muted mt-1 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                      aria-hidden
+                    >
+                      <polyline points="3,5 7,9 11,5" />
+                    </svg>
+                  </summary>
+                  <p className="px-4 sm:px-5 pb-4 -mt-0.5 text-[13px] text-muted leading-relaxed">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SourceBadge({
+  kind,
+  t,
+}: {
+  kind: "primary" | "official" | "secondary";
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const styles: Record<typeof kind, string> = {
+    primary: "border-emerald/40 text-emerald-deep bg-emerald-soft",
+    official: "border-ember/40 text-ember bg-ember/10",
+    secondary: "border-rule text-muted bg-paper/50",
+  };
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] font-semibold ${styles[kind]}`}
+    >
+      {t.sources.kinds[kind]}
+    </span>
   );
 }

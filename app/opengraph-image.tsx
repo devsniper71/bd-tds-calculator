@@ -128,7 +128,7 @@ export default async function OGImage() {
             <span>·</span>
             <span>Finance Ordinance 2025</span>
             <span>·</span>
-            <span>Bangla · English</span>
+            <span>Free &amp; client-side</span>
           </div>
           <div
             style={{
