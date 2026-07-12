@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface Props {
   number: string;
@@ -18,6 +18,14 @@ export function Section({
   defaultCollapsed = false,
 }: Props) {
   const [open, setOpen] = useState(!defaultCollapsed);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Apply `inert` via the DOM property so collapsed content is removed from the
+  // tab order and a11y tree. React 18 doesn't render the boolean `inert`
+  // attribute, so setting the property here is what actually takes effect.
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.inert = !open;
+  }, [open]);
 
   return (
     <section className="mb-7 sm:mb-8">
@@ -59,9 +67,7 @@ export function Section({
         </span>
       </button>
       <div
-        // `inert` when collapsed removes the hidden inputs from the tab order
-        // and the accessibility tree (they animate to 0 height but stay in DOM).
-        inert={!open || undefined}
+        ref={contentRef}
         className={`grid transition-all duration-[400ms] ease-swift ${
           open
             ? "grid-rows-[1fr] opacity-100"
