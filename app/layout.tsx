@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@/components/Analytics";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { FAQ } from "@/lib/faq";
 
 // Display — an editorial serif with optical sizing; carries the authoritative,
@@ -235,7 +237,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         {children}
+        {/* Google Analytics 4 — gated on NEXT_PUBLIC_GA_ID */}
         <Analytics />
+        {/* Vercel Web Analytics + Speed Insights — no-op unless deployed on Vercel */}
+        <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   );
