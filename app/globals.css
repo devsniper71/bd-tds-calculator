@@ -155,7 +155,9 @@
     letter-spacing: 0.18em;
     font-size: 10.5px;
     font-weight: 600;
-    color: #615f56;
+    /* Token-backed so eyebrows keep AA contrast in dark mode too. A per-use
+       Tailwind text-* utility (utilities layer) still overrides this. */
+    color: rgb(var(--c-muted));
   }
 
   .input-base {
