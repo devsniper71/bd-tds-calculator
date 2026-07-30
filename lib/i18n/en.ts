@@ -177,12 +177,17 @@ export const en = {
     annualTax: "Annual tax payable",
     effectiveRate: "Effective tax rate",
     afterFiling: "Payable after filing adjustment",
+    // Shorter form for the summary band, where a two-line label would drop
+    // its figure off the baseline the other cells share.
+    afterFilingShort: "Payable on filing",
     alreadyDeducted: "Less: tax already deducted",
     balanceDue: "Balance payable",
     refundable: "Refundable",
 
     // Credits the tool, not a preparer. Wording matters: nothing here may
     // suggest a named person prepared or certified this taxpayer's figures.
+    // The domain is already in the letterhead, so it is not repeated here —
+    // "Generated with ayakor · ayakor.com" said the name twice in one line.
     generatedBy: "Generated with ayakor",
     builtBy: "Built by Md Rasel Ahmed",
     disclaimer:

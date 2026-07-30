@@ -326,8 +326,7 @@
   .ps-site {
     display: block;
     font-size: 7.5pt;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    letter-spacing: 0.06em;
     color: #5a5850;
     margin-top: 1pt;
   }
@@ -422,6 +421,12 @@
     padding: 0 0 3pt;
     border-bottom: 0.6pt solid #cfcabf;
   }
+  /* `.ps-table thead th` (0,1,2) outranks a bare `.ps-r` (0,1,0), so column
+     headings sat left while their figures sat right. Qualify the modifier so
+     a right-aligned column is right-aligned all the way up. */
+  .ps-table thead th.ps-r {
+    text-align: right;
+  }
   .ps-table td {
     padding: 1.9pt 0;
     border-bottom: 0.4pt solid #e8e4da;
@@ -455,8 +460,9 @@
 
   /* Summary band */
   .ps-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* Flex, not a fixed 3-column grid: a filing adjustment adds a fourth
+       figure and the band has to take it without being re-specified. */
+    display: flex;
     gap: 10pt;
     border: 0.7pt solid #0a5d44;
     border-radius: 3pt;
@@ -464,6 +470,17 @@
     background: #f2f7f4 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  .ps-sum-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    /* Values sit on one baseline even if a label wraps to two lines —
+       otherwise one figure drops below the row and the band reads crooked. */
+    display: flex;
+    flex-direction: column;
+  }
+  .ps-sum-cell .ps-sum-v {
+    margin-top: auto;
   }
   .ps-sum-k {
     font-size: 7.5pt;

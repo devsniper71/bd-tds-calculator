@@ -237,6 +237,15 @@ export function PrintSheet({ result, input }: Props) {
         <div className="ps-summary">
           <SummaryCell label={t.print.monthlyTds} value={fmt(result.monthlyTDS)} lead />
           <SummaryCell label={t.print.annualTax} value={fmt(result.annualTaxPayable)} />
+          {/* Without this the summary claims 54,600 is payable while section 3
+              above it says 51,870 — the reader is left to spot which is the
+              amount that actually settles the year. */}
+          {showFiling && (
+            <SummaryCell
+              label={t.print.afterFilingShort}
+              value={fmt(result.taxAfterFilingIncentive)}
+            />
+          )}
           <SummaryCell
             label={t.print.effectiveRate}
             value={formatPercent(result.effectiveTaxRate)}
@@ -267,12 +276,8 @@ export function PrintSheet({ result, input }: Props) {
         </p>
         <p className="ps-foot-disc">{t.print.disclaimer}</p>
         <div className="ps-foot-credit">
-          <span>
-            {t.print.generatedBy} · ayakor.com
-          </span>
-          <span>
-            {t.print.builtBy} · linkedin.com/in/meetraselahmed
-          </span>
+          <span>{t.print.generatedBy}</span>
+          <span>{t.print.builtBy} · linkedin.com/in/meetraselahmed</span>
         </div>
       </footer>
     </div>
