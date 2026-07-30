@@ -123,6 +123,14 @@ export function ResultsPanel({ result, input }: Props) {
               {result.filingRebate > 0
                 ? t.results.afterEarlyFiling
                 : t.results.afterLateFiling}
+              {" · "}
+              {/* Same annual figure over twelve months. Deliberately worded and
+                  placed as a derived aside, never as a second TDS figure — the
+                  headline above is what the employer actually withholds. */}
+              <span className="num text-white">
+                {fmt(result.taxAfterFilingIncentive / 12)}
+              </span>
+              <span className="text-paper/70">{t.filing.perMonth}</span>
             </div>
           )}
         </div>

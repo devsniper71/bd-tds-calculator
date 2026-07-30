@@ -380,6 +380,19 @@ describe("filing outlook", () => {
     expect(o.every((x) => x.deltaVsNeutral === 0)).toBe(true);
   });
 
+  it("agrees with the hero's own after-filing figure, quarter for quarter", () => {
+    // The results hero derives its monthly figure straight from the result
+    // (taxAfterFilingIncentive / 12) while the selector reads it off
+    // filingOutlook. Two code paths showing one number — pin them together so
+    // they cannot drift into contradicting each other on screen.
+    const base = input("2026-27");
+    for (const o of filingOutlook(base)) {
+      const hero = calculate({ ...base, filingQuarter: o.quarter });
+      near(o.monthlyEquivalent, hero.taxAfterFilingIncentive / 12);
+      expect(o.annualTax).toBe(hero.taxAfterFilingIncentive);
+    }
+  });
+
   it("zero tax → nothing to compare", () => {
     const o = filingOutlook(input("2026-27", { income: { ...EMPTY_INCOME } }));
     expect(o.every((x) => x.annualTax === 0 && x.monthlyEquivalent === 0)).toBe(
