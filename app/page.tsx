@@ -50,11 +50,9 @@ export default function HomePage() {
       </header>
 
       {/* ────── Mobile-only sticky summary strip ────── */}
-      <div
-        className="lg:hidden sticky top-[52px] z-20 bg-emerald-deep text-paper border-b border-emerald-deep/20 no-print"
-        role="status"
-        aria-live="polite"
-      >
+      {/* Not a live region — it mirrors the results hero, which already
+          announces the same figure. Two would double every announcement. */}
+      <div className="lg:hidden sticky top-[52px] z-20 bg-emerald-deep text-paper border-b border-emerald-deep/20 no-print">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
           <span className="text-[10px] uppercase tracking-[0.16em] text-paper/70 font-medium">
             {t.results.monthlyTDS}

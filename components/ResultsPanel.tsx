@@ -91,7 +91,9 @@ export function ResultsPanel({ result, input }: Props) {
         >
           ৳
         </div>
-        <div className="relative">
+        {/* The page's single live region: one announcement per recalculation,
+            covering the monthly figure, the annual total and the rate. */}
+        <div className="relative" role="status" aria-live="polite">
           <div className="label-eyebrow text-paper/60 mb-2">
             {t.results.monthlyTDS}
           </div>
@@ -412,6 +414,9 @@ function SlabRow({
   );
 }
 
+// Deliberately NOT a live region. Every figure in the panel is animated, so
+// announcing each one would fire a dozen-plus interruptions per keystroke. The
+// hero below wraps the headline figure in the single live region for the page.
 function AnimatedFigure({
   value,
   format,
@@ -423,11 +428,7 @@ function AnimatedFigure({
 }) {
   const formatted = format(value);
   return (
-    <span
-      key={formatted}
-      className={`number-pop ${className ?? ""}`}
-      aria-live="polite"
-    >
+    <span key={formatted} className={`number-pop ${className ?? ""}`}>
       {formatted}
     </span>
   );
