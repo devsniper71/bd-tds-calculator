@@ -68,9 +68,12 @@ export function PrintSheet({ result, input }: Props) {
       {/* ── Letterhead ─────────────────────────────────────────────── */}
       <header className="ps-head">
         <div className="ps-head-brand">
-          <span className="ps-wordmark">ayakor</span>
+          <span className="ps-wordmark">{t.brand}</span>
           <span className="ps-dot" aria-hidden />
-          <span className="ps-site">ayakor.com</span>
+          {/* The tagline, not the domain. Stacking "ayakor.com" under "ayakor"
+              repeated the name and told the reader nothing; a masthead should
+              say who and what. The domain belongs in the colophon. */}
+          <span className="ps-site">{t.tagline}</span>
         </div>
         <div className="ps-head-doc">
           <div className="ps-doctitle">{t.print.docTitle}</div>
@@ -301,7 +304,9 @@ export function PrintSheet({ result, input }: Props) {
         <p className="ps-foot-disc">{t.print.disclaimer}</p>
         <div className="ps-foot-credit">
           <span>{t.print.generatedBy}</span>
-          <span>{t.print.builtBy} · linkedin.com/in/meetraselahmed</span>
+          <span>
+            {t.print.builtBy} · {t.print.builtByUrl}
+          </span>
         </div>
       </footer>
     </div>

@@ -186,15 +186,15 @@ export const en = {
 
     // Credits the tool, not a preparer. Wording matters: nothing here may
     // suggest a named person prepared or certified this taxpayer's figures.
-    // The domain is already in the letterhead, so it is not repeated here —
-    // "Generated with ayakor · ayakor.com" said the name twice in one line.
-    generatedBy: "Generated with ayakor",
+    // The domain lives here rather than in the letterhead: a masthead carries
+    // the name, a colophon carries where to find it.
+    generatedBy: "Generated with ayakor.com",
     builtBy: "Built by Md Rasel Ahmed",
+    builtByUrl: "linkedin.com/in/meetraselahmed",
     disclaimer:
       "Unofficial estimate for guidance only — not professional tax advice, and not prepared or certified by any tax practitioner. Figures are computed from the amounts entered by the user. Complex situations may need specialist review; for binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
     sourceNote:
       "Rates applied are those of the {statute} for {year}. Statutory sources are listed at ayakor.com.",
-    page: "Page 1 of 1",
   },
 
   results: {
@@ -213,7 +213,6 @@ export const en = {
     // year and the incentive is applied when the return is filed.
     afterEarlyFiling: "after the early-filing rebate",
     afterLateFiling: "after the late-filing surcharge",
-    printAfterFiling: "After filing adjustment",
     filingRebateNote:
       "Confirmed by the Finance Act 2026 — 5% of tax, capped at BDT 25,000.",
     filingSurchargeNote:
