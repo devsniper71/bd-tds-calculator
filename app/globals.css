@@ -17,7 +17,9 @@
     --c-emerald: 10 93 68;
     --c-emerald-deep: 6 59 44;
     --c-emerald-soft: 234 241 236;
-    --c-ember: 184 133 46;
+    /* Deepened from 184 133 46: at 9px on a bg-ember/10 chip that measured
+       2.92:1, well under AA. This reads 4.7:1 and keeps the warm bronze. */
+    --c-ember: 133 92 20;
     --c-crimson: 162 58 44;
 
     /* Ambient page tint + speck color */
@@ -204,6 +206,26 @@
   @keyframes numberPop {
     0% { opacity: 0.4; transform: translateY(3px); }
     100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* The advisory card referenced `animate-fadeSlideUp`, which was never
+     defined — not by Tailwind (it ships only spin/ping/pulse/bounce) and not
+     here. The class was inert, so the card appeared with no transition while
+     everything around it animated. */
+  .animate-fadeSlideUp {
+    animation: fadeSlideUp 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes fadeSlideUp {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Neither animation should fire for readers who have asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .number-pop,
+    .animate-fadeSlideUp {
+      animation: none;
+    }
   }
 
   .chip-button {

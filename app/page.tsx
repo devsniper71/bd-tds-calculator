@@ -27,8 +27,14 @@ export default function HomePage() {
       {/* The entire printed document. Everything else on the page is no-print. */}
       <PrintSheet result={result} input={input} />
 
-      {/* ────── Masthead ────── */}
-      <header className="border-b border-rule glass-header sticky top-0 z-30 no-print">
+      {/* ────── Sticky stack: masthead + the mobile summary strip ──────
+          One sticky container rather than two independently pinned elements.
+          The strip used to be pinned at top-[52px], a hand-measured guess at
+          the header's height; the header actually renders 57px, so the strip
+          sat 5px under it and the header (z-30 over z-20) hid its top edge.
+          Stacked in one container they abut exactly, at any header height. */}
+      <div className="sticky top-0 z-30 no-print">
+      <header className="border-b border-rule glass-header">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2 sm:gap-3 min-w-0">
             <BrandMark text={t.brand} size="sm" />
@@ -46,7 +52,7 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Md Rasel Ahmed on LinkedIn"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
             >
               <LinkedInIcon />
             </a>
@@ -55,7 +61,7 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View source on GitHub"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
             >
               <GitHubIcon />
             </a>
@@ -63,21 +69,31 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ────── Mobile-only sticky summary strip ────── */}
       {/* Not a live region — it mirrors the results hero, which already
-          announces the same figure. Two would double every announcement. */}
-      <div className="lg:hidden sticky top-[52px] z-20 bg-emerald-deep text-paper border-b border-emerald-deep/20 no-print">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
-          <span className="text-[10px] uppercase tracking-[0.16em] text-paper/70 font-medium">
-            {t.results.monthlyTDS}
+          announces the same figures. Two would double every announcement.
+          Carries the annual alongside the monthly: while scrolling a long
+          form the strip is the only thing answering "what am I heading for",
+          and one figure without its scale answers only half of that. */}
+      <div className="lg:hidden bg-emerald-deep text-white border-b border-emerald-deep/20">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+          <span className="text-[10px] uppercase tracking-[0.16em] text-white/70 font-medium shrink-0">
+            {t.results.stickyLabel}
           </span>
-          <span
-            key={result.monthlyTDS}
-            className="num text-[16px] font-medium text-white number-pop"
-          >
-            {formatBDT(result.monthlyTDS)}
+          <span className="flex items-baseline gap-2 min-w-0">
+            <span
+              key={result.monthlyTDS}
+              className="num text-[17px] font-medium text-white number-pop leading-none"
+            >
+              {formatBDT(result.monthlyTDS)}
+            </span>
+            <span className="num text-[10.5px] text-white/60 whitespace-nowrap leading-none">
+              {tmpl(t.results.stickyAnnual, {
+                amount: formatBDT(result.annualTaxPayable),
+              })}
+            </span>
           </span>
         </div>
+      </div>
       </div>
 
       {/* ────── Hero ────── */}
@@ -90,7 +106,7 @@ export default function HomePage() {
               </div>
               <h1 className="font-head tracking-tightish text-ink font-light text-[32px] sm:text-[44px] lg:text-[54px] leading-[1.05] text-balance">
                 {t.hero.title.pre}{" "}
-                <span className="italic font-normal text-emerald-deep">
+                <span className="italic font-normal text-emerald">
                   {t.hero.title.accent}
                 </span>{" "}
                 {t.hero.title.post}
@@ -171,7 +187,9 @@ export default function HomePage() {
                 {t.footer.tagline}
               </p>
               <p className="text-[11.5px] text-muted leading-relaxed">
-                {t.footer.dueDateNote}
+                {cfg.filingIncentive
+                  ? t.footer.dueDateNote
+                  : t.footer.dueDateNoteFixed}
               </p>
             </div>
 
@@ -196,7 +214,6 @@ export default function HomePage() {
                   href="mailto:meetRaselAhmed@gmail.com"
                   icon={<MailIcon />}
                   label="meetRaselAhmed@gmail.com"
-                  breakAll
                 />
                 <ContactLink
                   href="https://wa.me/8801782449977"
@@ -266,12 +283,10 @@ function ContactLink({
   href,
   icon,
   label,
-  breakAll = false,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
-  breakAll?: boolean;
 }) {
   const isExternal = !href.startsWith("mailto:");
   return (
@@ -285,7 +300,11 @@ function ContactLink({
       <span className="text-muted group-hover:text-emerald transition-colors shrink-0">
         {icon}
       </span>
-      <span className={breakAll ? "break-all" : ""}>{label}</span>
+      {/* min-w-0 lets the label shrink inside the flex row, and anywhere-wrap
+          breaks the URL only when it must. Without both, an address like
+          linkedin.com/in/meetRaselAhmed pushed the footer 30px past the
+          viewport in the narrow three-column layout at 768px. */}
+      <span className="min-w-0 [overflow-wrap:anywhere]">{label}</span>
     </a>
   );
 }
@@ -431,7 +450,7 @@ function SlabReferenceTable({
                 {formatBDT(r.from)} —{" "}
                 {r.to !== null ? formatBDT(r.to) : t.reference.rangeAbove}
               </td>
-              <td className="py-3 px-3 sm:px-4 text-right num text-[12px] sm:text-[13px] font-medium text-emerald-deep">
+              <td className="py-3 px-3 sm:px-4 text-right num text-[12px] sm:text-[13px] font-medium text-emerald">
                 {formatRate(r.rate)}
               </td>
               <td className="py-3 px-4 text-right text-[12px] text-muted italic hidden sm:table-cell">
@@ -582,7 +601,7 @@ function SourceBadge({
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const styles: Record<typeof kind, string> = {
-    primary: "border-emerald/40 text-emerald-deep bg-emerald-soft",
+    primary: "border-emerald/40 text-emerald bg-emerald-soft",
     official: "border-ember/40 text-ember bg-ember/10",
   };
   return (

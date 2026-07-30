@@ -77,7 +77,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                     aria-pressed={checked}
                     className={`chip-button rounded-full border px-3.5 py-1.5 text-[12.5px] num ${
                       checked
-                        ? "border-emerald bg-emerald-deep text-paper"
+                        ? "border-emerald bg-emerald-deep text-white"
                         : "border-rule bg-paper/60 text-muted hover:border-emerald/40 hover:text-ink"
                     }`}
                   >
@@ -115,7 +115,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                     aria-pressed={checked}
                     className={`chip-button text-left rounded-md border px-3 py-2.5 ${
                       checked
-                        ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
+                        ? "border-emerald bg-emerald-soft text-emerald shadow-inset"
                         : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
                     }`}
                   >
@@ -151,10 +151,25 @@ export function CalculatorForm({ input, onChange }: Props) {
                   max={10}
                 />
               </Field>
+            </>
+          )}
+
+          {/* Outside the non-resident guard on purpose. The engine applies the
+              first-time-taxpayer amount and the area-based minimum to EVERY
+              category, non-residents included, so hiding these for that
+              category left two inputs silently steering the result with no way
+              to see or change them. Only the child allowance is genuinely
+              resident-only — a non-resident has no threshold to raise. */}
+          <div className="rule-h" />
 
               <Field
                 label={t.fields.newTaxpayer}
-                hint={t.fields.newTaxpayerHint}
+                hint={tmpl(t.fields.newTaxpayerHint, {
+                  newAmount: formatBDT(cfg.minimumTaxNewTaxpayer),
+                  standard: formatBDT(
+                    cfg.minimumTaxByArea[input.minTaxArea ?? "dhaka_ctg"]
+                  ),
+                })}
                 labelable={false}
               >
                 <Toggle
@@ -192,7 +207,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                           aria-pressed={checked}
                           className={`chip-button text-left rounded-md border px-3 py-2 ${
                             checked
-                              ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
+                              ? "border-emerald bg-emerald-soft text-emerald shadow-inset"
                               : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
                           }`}
                         >
@@ -208,8 +223,6 @@ export function CalculatorForm({ input, onChange }: Props) {
                   </div>
                 </div>
               )}
-            </>
-          )}
         </div>
       </Section>
 
@@ -393,7 +406,7 @@ export function CalculatorForm({ input, onChange }: Props) {
             </Field>
 
             <details className="group -mt-1 mb-1">
-              <summary className="cursor-pointer list-none inline-flex items-center gap-1.5 text-[11.5px] text-emerald hover:text-emerald-deep transition-colors select-none">
+              <summary className="cursor-pointer list-none inline-flex items-center gap-1.5 text-[11.5px] text-emerald hover:text-emerald transition-colors select-none">
                 <svg
                   width="11"
                   height="11"
@@ -498,7 +511,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                     )}${t.filing.perMonth}${delta}`}
                     className={`chip-button text-left rounded-md border px-2.5 py-2 ${
                       checked
-                        ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
+                        ? "border-emerald bg-emerald-soft text-emerald shadow-inset"
                         : "border-rule bg-paper hover:border-emerald/40 hover:bg-surface"
                     }`}
                   >
@@ -508,7 +521,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                     <span
                       aria-hidden
                       className={`block text-[13px] num font-medium mt-0.5 leading-tight ${
-                        checked ? "text-emerald-deep" : "text-ink"
+                        checked ? "text-emerald" : "text-ink"
                       }`}
                     >
                       {formatBDT(monthlyEquivalent)}

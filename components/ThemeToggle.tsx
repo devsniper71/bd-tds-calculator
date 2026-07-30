@@ -34,7 +34,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
       aria-pressed={mounted ? dark : undefined}
-      className="relative inline-flex items-center justify-center w-8 h-8 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
+      className="relative inline-flex items-center justify-center w-9 h-9 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
     >
       {/* Sun (light) */}
       <svg
