@@ -196,6 +196,15 @@ describe("minimum tax", () => {
     expect(calculate(input("2026-27", low)).minimumTax).toBe(1000);
     expect(calculate(input("2025-26", low)).minimumTax).toBe(1000);
   });
+
+  it("non-resident foreigners get the same area / first-time modifiers", () => {
+    const nr = (over: Partial<CalculatorInput>) =>
+      calculate(employmentOnly("2025-26", 1_200_000, { category: "non_resident_foreigner", ...over }));
+    expect(nr({ minTaxArea: "dhaka_ctg" }).minimumTax).toBe(5000);
+    expect(nr({ minTaxArea: "other_city" }).minimumTax).toBe(4000);
+    expect(nr({ minTaxArea: "other" }).minimumTax).toBe(3000);
+    expect(nr({ isNewTaxpayer: true }).minimumTax).toBe(1000);
+  });
 });
 
 // ---------------------------------------------------------------------------

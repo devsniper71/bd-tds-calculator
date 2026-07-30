@@ -251,11 +251,19 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 
   const grossAnnualIncome = totalEmploymentIncome + otherIncome + dividendIncome;
 
+  // Minimum tax floor — area-based through AY 2025-26, flat after. Resolved once
+  // here so the resident and non-resident paths can never drift apart.
+  const areaKey: MinTaxArea = input.minTaxArea ?? "dhaka_ctg";
+  const baseMinimumTax = input.isNewTaxpayer
+    ? cfg.minimumTaxNewTaxpayer
+    : cfg.minimumTaxByArea[areaKey];
+
   // Non-resident foreigner: flat rate, no threshold / rebate.
   if (isNonResidentForeigner) {
     const taxableIncome = totalEmploymentIncome + otherIncome + taxableDividend;
     const grossTax = taxableIncome * cfg.nonResidentRate;
-    const minimumTax = taxableIncome > 0 ? cfg.minimumTaxByArea.dhaka_ctg : 0;
+    // The tax-free threshold is nil for this category, so any income clears it.
+    const minimumTax = taxableIncome > 0 ? baseMinimumTax : 0;
     const annualTaxPayable = Math.max(grossTax, minimumTax);
     const monthlyTDS = annualTaxPayable / 12;
     const taxAlreadyDeducted = safe(input.taxAlreadyDeducted);
@@ -415,11 +423,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   ) {
     surchargeRate = cfg.assetSurchargeRate;
   }
-  // Minimum tax — area-based through AY 2025-26, flat after.
-  const areaKey: MinTaxArea = input.minTaxArea ?? "dhaka_ctg";
-  const baseMinimumTax = input.isNewTaxpayer
-    ? cfg.minimumTaxNewTaxpayer
-    : cfg.minimumTaxByArea[areaKey];
   const minimumTax = taxableIncome > taxFreeThreshold ? baseMinimumTax : 0;
 
   // Statutory order: regular tax less rebate, floored at the minimum tax, THEN
