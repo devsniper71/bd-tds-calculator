@@ -285,6 +285,13 @@
     font-size: 10pt;
     line-height: 1.45;
     color: #111;
+    /* Browsers drop background colour when printing unless told otherwise.
+       The sheet uses it in exactly two deliberate places — the wordmark dot
+       and the summary band — and losing the dot printed the brand mark as a
+       bare word. Declared here so both survive rather than per-element, where
+       it is easy to add a third and forget. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .print-sheet .num {
     font-variant-numeric: tabular-nums lining-nums;
