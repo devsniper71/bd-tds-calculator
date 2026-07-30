@@ -5,7 +5,7 @@ export const en = {
   hero: {
     title: {
       pre: "Calculate your monthly",
-      accent: "tax-deducted-at-source",
+      accent: "tax deducted at source",
       post: "with line-by-line transparency.",
     },
     subtitle:
@@ -190,7 +190,7 @@ export const en = {
     // the name, a colophon carries where to find it.
     generatedBy: "Generated with ayakor.com",
     builtBy: "Built by Md Rasel Ahmed",
-    builtByUrl: "linkedin.com/in/meetraselahmed",
+    builtByUrl: "linkedin.com/in/meetRaselAhmed",
     disclaimer:
       "Unofficial estimate for guidance only — not professional tax advice, and not prepared or certified by any tax practitioner. Figures are computed from the amounts entered by the user. Complex situations may need specialist review; for binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
     sourceNote:

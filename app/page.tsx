@@ -13,6 +13,7 @@ import {
 } from "@/lib/tax-calculator";
 import { getYearConfig, type TaxYearConfig } from "@/lib/tax-years";
 import { FAQ } from "@/lib/faq";
+import { AUTHOR_LINKEDIN, AUTHOR_GITHUB, REPO_URL } from "@/lib/site";
 import { useTranslation, tmpl } from "@/lib/i18n";
 
 export default function HomePage() {
@@ -41,7 +42,16 @@ export default function HomePage() {
             </span>
             <ThemeToggle />
             <a
-              href="https://github.com/meetRaselAhmed/ayakor"
+              href={AUTHOR_LINKEDIN}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Md Rasel Ahmed on LinkedIn"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-rule bg-paper/70 text-muted hover:text-emerald hover:border-emerald/40 transition-colors chip-button"
+            >
+              <LinkedInIcon />
+            </a>
+            <a
+              href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View source on GitHub"
@@ -78,7 +88,7 @@ export default function HomePage() {
               <div className="label-eyebrow mb-3 sm:mb-4">
                 {`Bangladesh · Assessment Year ${cfg.label.replace("AY ", "")}`}
               </div>
-              <h1 className="font-head tracking-tightish text-ink font-light text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02]">
+              <h1 className="font-head tracking-tightish text-ink font-light text-[32px] sm:text-[44px] lg:text-[54px] leading-[1.05] text-balance">
                 {t.hero.title.pre}{" "}
                 <span className="italic font-normal text-emerald-deep">
                   {t.hero.title.accent}
@@ -86,8 +96,8 @@ export default function HomePage() {
                 {t.hero.title.post}
               </h1>
             </div>
-            <div className="col-span-12 lg:col-span-4 lg:text-right">
-              <p className="text-[13.5px] sm:text-[14px] text-muted leading-relaxed lg:max-w-[280px] lg:ml-auto">
+            <div className="col-span-12 lg:col-span-4">
+              <p className="text-[13.5px] sm:text-[14px] text-muted leading-relaxed lg:max-w-[300px] lg:ml-auto lg:border-l lg:border-rule lg:pl-5">
                 {t.hero.subtitle}
               </p>
             </div>
@@ -194,12 +204,12 @@ export default function HomePage() {
                   label="+880 1782 449977"
                 />
                 <ContactLink
-                  href="https://www.linkedin.com/in/meetraselahmed/"
+                  href={AUTHOR_LINKEDIN}
                   icon={<LinkedInIcon />}
-                  label="linkedin.com/in/meetraselahmed"
+                  label="linkedin.com/in/meetRaselAhmed"
                 />
                 <ContactLink
-                  href="https://github.com/meetRaselAhmed"
+                  href={AUTHOR_GITHUB}
                   icon={<GitHubIcon />}
                   label="github.com/meetRaselAhmed"
                 />
