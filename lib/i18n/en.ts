@@ -128,7 +128,10 @@ export const en = {
 
   filing: {
     label: "Return filing time",
-    hint: "When you file adjusts your final tax bill — not the monthly TDS your employer deducts through the year.",
+    hint: "When you file changes your final tax bill, not the monthly TDS your employer deducts. Each option shows that bill spread over 12 months, so you can compare.",
+    perMonth: "/mo",
+    savesVsNeutral: "saves {amount}",
+    costsVsNeutral: "costs {amount} more",
     badge: "Late rates unverified",
     provisional:
       "The Finance Act 2026 enacted year-round filing. The Jul–Sep rebate (5% of tax, capped at BDT 25,000) is confirmed; the Jan–Mar and Apr–Jun rates above are not yet verified against the gazette.",

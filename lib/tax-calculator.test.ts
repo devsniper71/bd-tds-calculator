@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   calculate,
+  filingOutlook,
   DEFAULT_INPUT,
   type CalculatorInput,
   type IncomeComponents,
@@ -336,6 +337,54 @@ describe("filing incentive", () => {
     const base = calculate(input("2026-27"));
     const q1 = calculate(input("2026-27", { filingQuarter: "q1" }));
     expect(q1.monthlyTDS).toBe(base.monthlyTDS);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Filing-quarter comparison
+// ---------------------------------------------------------------------------
+
+describe("filing outlook", () => {
+  it("prices every window against the neutral one", () => {
+    const o = filingOutlook(input("2026-27"));
+    expect(o.map((x) => x.quarter)).toEqual(["q1", "q2", "q3", "q4"]);
+    // Annual tax 54,600 → 5% rebate 2,730; Q3 floor 3,000; Q4 floor 5,000.
+    expect(o.map((x) => Math.round(x.annualTax))).toEqual([
+      51870, 54600, 57600, 59600,
+    ]);
+    expect(o.map((x) => Math.round(x.deltaVsNeutral))).toEqual([
+      -2730, 0, 3000, 5000,
+    ]);
+  });
+
+  it("monthly equivalent is the settled bill over twelve — never the TDS", () => {
+    const o = filingOutlook(input("2026-27"));
+    const tds = calculate(input("2026-27")).monthlyTDS;
+    for (const q of o) near(q.monthlyEquivalent, q.annualTax / 12);
+    // The neutral window coincides with TDS; the others must not, or the
+    // figure would be indistinguishable from what the employer withholds.
+    expect(o.find((x) => x.quarter === "q2")!.monthlyEquivalent).toBe(tds);
+    for (const q of o.filter((x) => x.quarter !== "q2")) {
+      expect(q.monthlyEquivalent).not.toBe(tds);
+    }
+  });
+
+  it("the neutral window is always the zero point", () => {
+    const o = filingOutlook(input("2026-27", { actualInvestment: 172800 }));
+    expect(o.find((x) => x.quarter === "q2")!.deltaVsNeutral).toBe(0);
+  });
+
+  it("a year without the incentive prices every window identically", () => {
+    const o = filingOutlook(input("2025-26"));
+    expect(new Set(o.map((x) => x.annualTax)).size).toBe(1);
+    expect(o.every((x) => x.deltaVsNeutral === 0)).toBe(true);
+  });
+
+  it("zero tax → nothing to compare", () => {
+    const o = filingOutlook(input("2026-27", { income: { ...EMPTY_INCOME } }));
+    expect(o.every((x) => x.annualTax === 0 && x.monthlyEquivalent === 0)).toBe(
+      true
+    );
   });
 });
 
