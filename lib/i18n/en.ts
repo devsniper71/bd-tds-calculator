@@ -32,7 +32,10 @@ export const en = {
     disabledChildrenHint:
       "+BDT 50,000 to the threshold per child. If both parents are taxpayers, only one may claim it — enter it on one return only.",
     newTaxpayer: "First-time taxpayer (new TIN)",
-    newTaxpayerHint: "Minimum tax becomes BDT 1,000 instead of 5,000",
+    // Templated, not fixed: the standard minimum is area-based for AY 2025-26
+    // (5,000 / 4,000 / 3,000), so a hard-coded "instead of 5,000" was wrong
+    // for anyone outside Dhaka or Chattogram.
+    newTaxpayerHint: "Minimum tax becomes {newAmount} instead of {standard}",
 
     basic: "Basic salary",
     basicHint: "The core taxable component of your CTC",
@@ -195,11 +198,20 @@ export const en = {
       "Unofficial estimate for guidance only — not professional tax advice, and not prepared or certified by any tax practitioner. Figures are computed from the amounts entered by the user. Complex situations may need specialist review; for binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
     sourceNote:
       "Rates applied are those of the {statute} for {year}. Statutory sources are listed at ayakor.com.",
+    // On screen the late-filing rates carry an "unverified" badge a glance
+    // away. On paper there is nothing to glance at, so the caveat has to
+    // travel with the figure.
+    filingUnverified:
+      "Late-filing rate not yet verified against the gazette — treat as provisional.",
   },
 
   results: {
     printButton: "Print / Save PDF",
     monthlyTDS: "Monthly TDS to deduct",
+    // Shorter label for the mobile strip: the full phrase plus two figures
+    // overflows a 320px viewport, and the strip has its own context anyway.
+    stickyLabel: "Monthly TDS",
+    stickyAnnual: "{amount}/yr",
     annualSummary: "for the year · effective rate",
     balanceDue: "Balance to pay",
     refundable: "Likely refundable",
@@ -280,7 +292,10 @@ export const en = {
       accent: "in plain sight",
       post: ".",
     },
-    body: "The Finance Act 2026 set the general tax-free threshold at BDT 4,00,000 and kept the bottom 5% slab abolished, so the first taxable taka is charged at 10%. The top marginal rate of 30% applies above BDT 36 lakh of taxable income for general taxpayers. Thresholds are fixed at this level for AY 2026–27 and 2027–28.",
+    // Deliberately year-agnostic: this sits directly above a table that
+    // re-renders for whichever assessment year is selected, so naming one
+    // year's figures here made the prose contradict the table beside it.
+    body: "Bangladesh charges personal income tax on a progressive scale. Income up to the tax-free threshold is untaxed; each band above it is charged at its own rate, so only the slice of income falling inside a band pays that band's rate. Thresholds and bands are reset by each Finance Act — the table shows the ones in force for the year and category you have selected.",
     thRange: "Range (BDT)",
     thRate: "Rate",
     thNote: "Slab",
@@ -323,7 +338,13 @@ export const en = {
     disclaimerTitle: "Disclaimer",
     disclaimer:
       "This calculator is provided for guidance only. Complex situations (recognised provident fund, multiple-employer income, foreign income relief, perquisite valuation, etc.) may need specialist review. For binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
+    // Two notes: the year-round regime the Finance Act 2026 enacted, and the
+    // single Tax Day that still governs the earlier assessment year. Which one
+    // shows follows the selected year, because stating the wrong one is worse
+    // than stating none.
     dueDateNote:
+      "Returns are filed year-round: filing by 30 September earns a rebate, October to December is neutral, and filing later carries additional tax.",
+    dueDateNoteFixed:
       "Return filing due date: 30 November (for individuals). Up to 90 days extension available in unavoidable circumstances.",
     lastUpdated: "Last updated for Finance Act 2026",
     credits: "Built by",

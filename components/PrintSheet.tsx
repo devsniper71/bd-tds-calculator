@@ -233,6 +233,9 @@ export function PrintSheet({ result, input }: Props) {
             )}
           </tbody>
         </table>
+        {result.filingSurcharge > 0 && cfg.filingIncentive?.provisional && (
+          <p className="ps-note">{t.print.filingUnverified}</p>
+        )}
       </Section>
 
       {/* ── 4. Summary ─────────────────────────────────────────────── */}

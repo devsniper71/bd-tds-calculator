@@ -55,7 +55,7 @@ export function ResultsPanel({ result, input }: Props) {
       </div>
 
       {/* Hero (screen only — the print sheet uses the compact header above) */}
-      <div className="bg-emerald-deep text-paper rounded-2xl p-7 relative overflow-hidden card-lift glass-hero no-print">
+      <div className="bg-emerald-deep text-white rounded-2xl p-7 relative overflow-hidden card-lift glass-hero no-print">
         <div
           aria-hidden
           className="absolute -right-3 -top-2 hero-num text-[180px] leading-none opacity-[0.07] select-none"
@@ -65,7 +65,7 @@ export function ResultsPanel({ result, input }: Props) {
         {/* The page's single live region: one announcement per recalculation,
             covering the monthly figure, the annual total and the rate. */}
         <div className="relative" role="status" aria-live="polite">
-          <div className="label-eyebrow text-paper/60 mb-2">
+          <div className="label-eyebrow text-white/60 mb-2">
             {t.results.monthlyTDS}
           </div>
           <AnimatedFigure
@@ -73,14 +73,14 @@ export function ResultsPanel({ result, input }: Props) {
             className="hero-num text-[44px] sm:text-[52px] leading-none tracking-tight text-white block"
             format={fmt}
           />
-          <div className="text-[13px] text-paper/70 mt-3 num">
+          <div className="text-[13px] text-white/70 mt-3 num">
             ≈ {fmt(result.annualTaxPayable)} {t.results.annualSummary}{" "}
             <span className="text-white">{pct(result.effectiveTaxRate)}</span>
           </div>
           {/* The filing-quarter choice cannot move the monthly figure above, so
               surface its effect here — otherwise the selector reads as inert. */}
           {(result.filingRebate > 0 || result.filingSurcharge > 0) && (
-            <div className="text-[12.5px] text-paper/70 mt-1.5 pt-1.5 border-t border-paper/15">
+            <div className="text-[12.5px] text-white/70 mt-1.5 pt-1.5 border-t border-white/15">
               <span className="num text-white">
                 {fmt(result.taxAfterFilingIncentive)}
               </span>{" "}
@@ -94,7 +94,7 @@ export function ResultsPanel({ result, input }: Props) {
               <span className="num text-white">
                 {fmt(result.taxAfterFilingIncentive / 12)}
               </span>
-              <span className="text-paper/70">{t.filing.perMonth}</span>
+              <span className="text-white/70">{t.filing.perMonth}</span>
             </div>
           )}
         </div>
@@ -351,7 +351,7 @@ function Row({
           value={value}
           className={`num ${
             accent
-              ? "text-emerald-deep text-[15px] font-medium"
+              ? "text-emerald text-[15px] font-medium"
               : strong
               ? "text-ink text-[14px] font-medium"
               : "text-ink/85 text-[13px]"
@@ -360,7 +360,7 @@ function Row({
         />
       </div>
       {hint ? (
-        <p className="text-[10.5px] text-muted/85 italic -mt-0.5 mb-1.5">
+        <p className="text-[10.5px] text-muted italic -mt-0.5 mb-1.5">
           {hint}
         </p>
       ) : null}
@@ -381,7 +381,7 @@ function SlabRow({
     <>
       <span
         className={`num text-[12.5px] ${
-          inactive ? "text-muted/40" : "text-emerald-deep font-medium"
+          inactive ? "text-muted/40" : "text-emerald font-medium"
         }`}
       >
         {formatPercent(slab.rate, 0)}
@@ -454,7 +454,7 @@ function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
 
         <div className="relative">
           <div className="flex items-baseline justify-between mb-3">
-            <span className="label-eyebrow text-emerald-deep">
+            <span className="label-eyebrow text-emerald">
               {t.advisory.opportunityEyebrow}
             </span>
             <LightbulbIcon />
@@ -466,7 +466,7 @@ function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
                 amount: fmt(result.additionalInvestmentNeeded),
               })}
             </p>
-            <p className="text-[14px] text-emerald-deep leading-snug">
+            <p className="text-[14px] text-emerald leading-snug">
               {tmpl(t.advisory.saveTax, {
                 amount: fmt(result.possibleTaxSavings),
               })}
@@ -502,7 +502,7 @@ function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
               <div className="label-eyebrow !text-[9.5px] mb-0.5">
                 {t.advisory.maxRebateLabel}
               </div>
-              <div className="num text-[13px] text-emerald-deep font-medium">
+              <div className="num text-[13px] text-emerald font-medium">
                 {fmt(result.maxPossibleRebate)}
               </div>
             </div>
@@ -543,7 +543,7 @@ function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
     return (
       <div className="rounded-xl border border-emerald/30 bg-emerald-soft/60 p-5 card-lift relative overflow-hidden animate-fadeSlideUp">
         <div className="flex items-baseline justify-between mb-2.5">
-          <span className="label-eyebrow text-emerald-deep">
+          <span className="label-eyebrow text-emerald">
             {t.advisory.maxedEyebrow}
           </span>
           <CheckIcon />

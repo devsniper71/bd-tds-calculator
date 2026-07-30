@@ -61,6 +61,17 @@ function yearBlock(id: string): string {
   lines.push(
     `- First BDT ${bdt(c.dividendExemption)} of listed-company dividend is exempt.`
   );
+  if (c.filingIncentive) {
+    const fi = c.filingIncentive;
+    lines.push(
+      `- Year-round return filing: filing 1 Jul-30 Sep earns a rebate of ${fi.earlyRebateRate * 100}% of tax capped at BDT ${bdt(fi.earlyRebateCap)}; 1 Oct-31 Dec is neutral; 1 Jan-31 Mar adds the higher of ${fi.lateQ3Rate * 100}% or BDT ${bdt(fi.lateQ3Floor)}; 1 Apr-30 Jun adds the higher of ${fi.lateQ4Rate * 100}% or BDT ${bdt(fi.lateQ4Floor)}. The rebate cannot take the liability below the minimum tax, and none of this changes the monthly TDS.`
+    );
+    if (fi.provisional) {
+      lines.push(
+        `  CAUTION: the early-filing rebate above is corroborated, but the two late-filing rates are not yet verified against the gazette. Do not state them as settled.`
+      );
+    }
+  }
   lines.push(
     `- Net-wealth surcharge: ${c.surchargeBrackets
       .map((b) => `${b.rate * 100}%`)
@@ -108,8 +119,14 @@ TDS to deduct. Figures entered stay in the browser; nothing is transmitted.
    remittance under para 17) is recorded but excluded from taxable income.
 3. Progressive slabs are applied above the taxpayer's tax-free threshold.
 4. The section 78 investment rebate is deducted.
-5. The result is floored at the statutory minimum tax, and the net-wealth
-   surcharge is added on top — in that order.
+5. The result is floored at the statutory minimum tax, then the net-wealth
+   surcharge is added. WHICH figure the surcharge is charged on depends on the
+   year: for AY 2025-26 it is the floored amount, so the minimum tax is inside
+   the surcharge base; from AY 2026-27 it is the tax after rebate, before the
+   floor is applied. Quoting one rule for both years gives the wrong answer.
+6. Return-filing timing then adjusts the settled liability where the year has a
+   year-round filing regime. It never changes the monthly TDS, which the
+   employer deducts during the income year.
 
 ## Rate data
 
