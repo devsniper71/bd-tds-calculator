@@ -120,10 +120,13 @@ export interface CalculatorResult {
   effectiveTaxRate: number;
 
   // Investment planning advisory
+  /** Largest rebate that actually reduces this year's tax (floor-aware). */
   maxPossibleRebate: number;
+  /** Investment still needed to reach `maxPossibleRebate`. */
   additionalInvestmentNeeded: number;
   possibleTaxSavings: number;
   atMaxRebate: boolean;
+  /** The minimum-tax floor — not the statutory caps — is limiting the rebate. */
   constrainedByMinimumTax: boolean;
 
   isNonResidentForeigner: boolean;
@@ -251,11 +254,19 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 
   const grossAnnualIncome = totalEmploymentIncome + otherIncome + dividendIncome;
 
+  // Minimum tax floor — area-based through AY 2025-26, flat after. Resolved once
+  // here so the resident and non-resident paths can never drift apart.
+  const areaKey: MinTaxArea = input.minTaxArea ?? "dhaka_ctg";
+  const baseMinimumTax = input.isNewTaxpayer
+    ? cfg.minimumTaxNewTaxpayer
+    : cfg.minimumTaxByArea[areaKey];
+
   // Non-resident foreigner: flat rate, no threshold / rebate.
   if (isNonResidentForeigner) {
     const taxableIncome = totalEmploymentIncome + otherIncome + taxableDividend;
     const grossTax = taxableIncome * cfg.nonResidentRate;
-    const minimumTax = taxableIncome > 0 ? cfg.minimumTaxByArea.dhaka_ctg : 0;
+    // The tax-free threshold is nil for this category, so any income clears it.
+    const minimumTax = taxableIncome > 0 ? baseMinimumTax : 0;
     const annualTaxPayable = Math.max(grossTax, minimumTax);
     const monthlyTDS = annualTaxPayable / 12;
     const taxAlreadyDeducted = safe(input.taxAlreadyDeducted);
@@ -415,11 +426,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   ) {
     surchargeRate = cfg.assetSurchargeRate;
   }
-  // Minimum tax — area-based through AY 2025-26, flat after.
-  const areaKey: MinTaxArea = input.minTaxArea ?? "dhaka_ctg";
-  const baseMinimumTax = input.isNewTaxpayer
-    ? cfg.minimumTaxNewTaxpayer
-    : cfg.minimumTaxByArea[areaKey];
   const minimumTax = taxableIncome > taxFreeThreshold ? baseMinimumTax : 0;
 
   // Statutory order: regular tax less rebate, floored at the minimum tax, THEN
@@ -443,11 +449,25 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   );
 
   // ─── Investment planning advisory ────────────────────────────────
-  const maxPossibleRebate = Math.min(
+  // The statutory ceiling on the rebate: lowest of 3% of taxable income, the
+  // absolute cap, and the tax itself (a rebate can't exceed the tax it offsets).
+  const statutoryMaxRebate = Math.min(
     taxableIncome * cfg.rebateRateOfTaxable,
     cfg.rebateCeiling,
     grossTax
   );
+  // …but rebate beyond (gross tax − minimum tax) is clawed straight back by the
+  // floor and buys the taxpayer nothing, so advising them to invest for it would
+  // lock up money for no return. The exception is a year that levies the
+  // surcharge on tax-AFTER-rebate (minimum tax outside the base, AY 2026-27):
+  // there every taka of rebate still shrinks the surcharge, so it all stays
+  // useful. `maxPossibleRebate` is therefore the largest rebate that actually
+  // reduces this year's tax — the target the advisory should aim the user at.
+  const rebateUsefulBelowFloor = surchargeRate > 0 && !cfg.minTaxInSurchargeBase;
+  const maxPossibleRebate = rebateUsefulBelowFloor
+    ? statutoryMaxRebate
+    : Math.min(statutoryMaxRebate, Math.max(0, grossTax - minimumTax));
+
   const investmentForMaxRebate =
     maxPossibleRebate > 0 ? maxPossibleRebate / cfg.rebateRateOfInvestment : 0;
   const additionalInvestmentNeeded = Math.max(
@@ -466,8 +486,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     simulatedTaxBeforeSurcharge + simulatedSurchargeBase * surchargeRate;
   const possibleTaxSavings = Math.max(0, annualTaxPayable - simulatedAnnualTax);
   const atMaxRebate = additionalInvestmentNeeded <= 1; // rounding tolerance
-  const constrainedByMinimumTax =
-    minimumTax > 0 && simulatedTaxAfterRebate < minimumTax;
+  // True when the floor is what's limiting the rebate, not the statutory caps.
+  const constrainedByMinimumTax = maxPossibleRebate < statutoryMaxRebate;
 
   return {
     assessmentYearId: cfg.id,
