@@ -190,6 +190,11 @@ export default function HomePage() {
                   label="+880 1782 449977"
                 />
                 <ContactLink
+                  href="https://www.linkedin.com/in/meetraselahmed/"
+                  icon={<LinkedInIcon />}
+                  label="linkedin.com/in/meetraselahmed"
+                />
+                <ContactLink
                   href="https://github.com/meetRaselAhmed"
                   icon={<GitHubIcon />}
                   label="github.com/meetRaselAhmed"
@@ -294,6 +299,14 @@ function WhatsAppIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0012.04 2zm0 18.15h-.01c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.26 8.26 0 01-1.27-4.38c0-4.55 3.71-8.25 8.27-8.25 2.21 0 4.28.86 5.84 2.42a8.2 8.2 0 012.42 5.84c0 4.55-3.71 8.24-8.26 8.24z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3V9zm7 0h3.8v1.64h.05c.53-1 1.83-2.06 3.77-2.06 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21h-4V9z" />
     </svg>
   );
 }
@@ -457,7 +470,7 @@ function SourcesSection({
           <div className="col-span-12 lg:col-span-8">
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {cfg.sources.map((s) => (
-                <li key={s.url}>
+                <li key={`${s.kind}:${s.label}`}>
                   <a
                     href={s.url}
                     target="_blank"
@@ -551,13 +564,12 @@ function SourceBadge({
   kind,
   t,
 }: {
-  kind: "primary" | "official" | "secondary";
+  kind: "primary" | "official";
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const styles: Record<typeof kind, string> = {
     primary: "border-emerald/40 text-emerald-deep bg-emerald-soft",
     official: "border-ember/40 text-ember bg-ember/10",
-    secondary: "border-rule text-muted bg-paper/50",
   };
   return (
     <span

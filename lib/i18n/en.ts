@@ -248,12 +248,11 @@ export const en = {
       accent: "traceable",
       post: ".",
     },
-    body: "Bangladesh tax law changes each fiscal year. These are the authoritative references behind the rates used for the year you selected — primary statute, official NBR resources, and reputable professional summaries.",
+    body: "Bangladesh tax law changes each fiscal year. These are the references behind the rates used for the year you selected — the statute itself and the National Board of Revenue that administers it. Government sources only, so you can check any figure at its origin.",
     forYear: "References for:",
     kinds: {
       primary: "Primary law",
       official: "Official",
-      secondary: "Firm summary",
     },
   },
 

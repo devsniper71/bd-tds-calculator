@@ -155,10 +155,6 @@ export function formatPercent(rate: number, decimals = 2): string {
   return `${(rate * 100).toFixed(decimals)}%`;
 }
 
-export function formatNumber(n: number): string {
-  return new Intl.NumberFormat("en-IN").format(n);
-}
-
 // Year-round filing incentive — early filing (Q1) rebate vs late (Q3/Q4)
 // surcharge. Applies at return-filing time, so it adjusts the final liability
 // but NOT the monthly TDS (which is deducted through the year). Min-tax-safe.
