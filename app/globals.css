@@ -303,9 +303,9 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 16px;
-    padding-bottom: 6pt;
+    padding-bottom: 5pt;
     border-bottom: 1.6pt solid #0a5d44;
-    margin-bottom: 8pt;
+    margin-bottom: 7pt;
   }
   .ps-wordmark {
     font-family: var(--font-head), Georgia, serif;
@@ -348,9 +348,9 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1pt 22pt;
-    padding-bottom: 6pt;
+    padding-bottom: 5pt;
     border-bottom: 0.6pt solid #cfcabf;
-    margin-bottom: 9pt;
+    margin-bottom: 7pt;
   }
   .ps-meta-row {
     display: flex;
@@ -374,7 +374,7 @@
      repeat, and a heading never lands at the foot of a page without its
      table. */
   .ps-sec {
-    margin-bottom: 8pt;
+    margin-bottom: 6pt;
   }
   .ps-sec-h {
     break-after: avoid;
@@ -428,7 +428,7 @@
     text-align: right;
   }
   .ps-table td {
-    padding: 1.9pt 0;
+    padding: 1.5pt 0;
     border-bottom: 0.4pt solid #e8e4da;
     vertical-align: top;
   }
@@ -446,10 +446,10 @@
     font-weight: 700;
     border-top: 0.7pt solid #9a968c;
     border-bottom: none !important;
-    padding-top: 3.2pt;
+    padding-top: 2.6pt;
   }
   .ps-tight {
-    margin-top: 6pt;
+    margin-top: 5pt;
   }
   .ps-note {
     font-size: 8pt;
@@ -466,7 +466,7 @@
     gap: 10pt;
     border: 0.7pt solid #0a5d44;
     border-radius: 3pt;
-    padding: 6pt 10pt;
+    padding: 5pt 10pt;
     background: #f2f7f4 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -481,6 +481,12 @@
   }
   .ps-sum-cell .ps-sum-v {
     margin-top: auto;
+  }
+  .ps-sum-sub {
+    font-size: 8pt;
+    color: #5a5850;
+    margin-top: 0.5pt;
+    min-height: 1em;
   }
   .ps-sum-k {
     font-size: 7.5pt;
@@ -500,8 +506,8 @@
 
   /* Colophon */
   .ps-foot {
-    margin-top: 9pt;
-    padding-top: 5pt;
+    margin-top: 7pt;
+    padding-top: 4pt;
     border-top: 0.6pt solid #cfcabf;
     break-inside: avoid;
   }
@@ -512,7 +518,7 @@
   }
   .ps-foot-disc {
     font-size: 7.5pt;
-    line-height: 1.4;
+    line-height: 1.32;
     color: #6a675e;
     margin-bottom: 5pt;
   }

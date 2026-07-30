@@ -235,35 +235,59 @@ export function PrintSheet({ result, input }: Props) {
       {/* ── 4. Summary ─────────────────────────────────────────────── */}
       <Section n="4" title={t.print.sec4}>
         <div className="ps-summary">
-          <SummaryCell label={t.print.monthlyTds} value={fmt(result.monthlyTDS)} lead />
-          <SummaryCell label={t.print.annualTax} value={fmt(result.annualTaxPayable)} />
+          <SummaryCell
+            label={t.print.monthlyTds}
+            value={fmt(result.monthlyTDS)}
+            reserveSub={showFiling}
+            lead
+          />
+          <SummaryCell
+            label={t.print.annualTax}
+            value={fmt(result.annualTaxPayable)}
+            reserveSub={showFiling}
+          />
           {/* Without this the summary claims 54,600 is payable while section 3
               above it says 51,870 — the reader is left to spot which is the
-              amount that actually settles the year. */}
+              amount that actually settles the year. The monthly counterpart
+              matches what the on-screen hero already shows for this figure. */}
           {showFiling && (
             <SummaryCell
               label={t.print.afterFilingShort}
               value={fmt(result.taxAfterFilingIncentive)}
+              sub={`${fmt(result.taxAfterFilingIncentive / 12)}${t.print.perMonth}`}
+              reserveSub
             />
           )}
           <SummaryCell
             label={t.print.effectiveRate}
             value={formatPercent(result.effectiveTaxRate)}
+            reserveSub={showFiling}
           />
         </div>
-        {result.taxAlreadyDeducted > 0 && (
-          <table className="ps-table ps-tight">
-            <tbody>
-              <Money label={t.print.afterFiling} annual={result.taxAfterFilingIncentive} />
-              <Money label={t.print.alreadyDeducted} annual={-result.taxAlreadyDeducted} />
-              <Money
-                label={isRefund ? t.print.refundable : t.print.balanceDue}
-                annual={Math.abs(result.taxDue)}
-                total
-              />
-            </tbody>
-          </table>
-        )}
+
+        {/* Always printed, including when nothing has been deducted yet: a
+            settlement that simply vanishes leaves the reader to infer whether
+            it was nil or merely omitted, and "৳ 0" answers that.
+
+            It deliberately does NOT restate the amount being deducted from.
+            That figure already closes section 3 and heads the band directly
+            above; a third statement of it here would put the same number on
+            the sheet four times under three labels, which is the fault this
+            document was already corrected for once. */}
+        <table className="ps-table ps-tight">
+          <tbody>
+            <Money
+              label={t.print.alreadyDeducted}
+              annual={-result.taxAlreadyDeducted}
+              always
+            />
+            <Money
+              label={isRefund ? t.print.refundable : t.print.balanceDue}
+              annual={Math.abs(result.taxDue)}
+              total
+            />
+          </tbody>
+        </table>
       </Section>
 
       {/* ── Colophon ───────────────────────────────────────────────── */}
@@ -325,13 +349,16 @@ function Money({
   monthly,
   annual,
   total = false,
+  always = false,
 }: {
   label: string;
   monthly?: number;
   annual: number;
   total?: boolean;
+  /** Print even at zero — for lines whose absence would itself be ambiguous. */
+  always?: boolean;
 }) {
-  if (!total && !annual) return null;
+  if (!total && !always && !annual) return null;
   const show = (v: number) => (v < 0 ? `(${fmt(Math.abs(v))})` : fmt(v));
   return (
     <tr className={total ? "ps-total" : undefined}>
@@ -349,16 +376,30 @@ function Money({
 function SummaryCell({
   label,
   value,
+  sub,
+  reserveSub = false,
   lead = false,
 }: {
   label: string;
   value: string;
+  /** Secondary figure under the value, e.g. the monthly equivalent. */
+  sub?: string;
+  /**
+   * Hold the sub-line's space even when this cell has none. Only one cell
+   * carries a monthly figure, and without the reservation its value would sit
+   * a line higher than the rest — the same baseline break a wrapped label
+   * caused. Cheaper to reserve the row than to chase the alignment.
+   */
+  reserveSub?: boolean;
   lead?: boolean;
 }) {
   return (
     <div className={`ps-sum-cell${lead ? " ps-sum-lead" : ""}`}>
       <div className="ps-sum-k">{label}</div>
       <div className="ps-sum-v num">{value}</div>
+      {reserveSub && (
+        <div className="ps-sum-sub num">{sub ?? " "}</div>
+      )}
     </div>
   );
 }
