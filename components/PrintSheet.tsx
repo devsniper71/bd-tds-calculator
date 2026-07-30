@@ -53,6 +53,16 @@ export function PrintSheet({ result, input }: Props) {
     (result.filingRebate > 0 || result.filingSurcharge > 0);
   const isRefund = result.taxDue < 0;
 
+  // Subtotals are printed only when a line actually sits between them and the
+  // total below — otherwise the sheet states the same figure twice under two
+  // labels, which reads as an error rather than as a step.
+  const hasNonEmploymentIncome =
+    result.otherIncome > 0 || result.dividendIncome > 0;
+  const hasTaxAdjustments =
+    result.investmentRebate > 0 ||
+    result.surcharge > 0 ||
+    (result.minimumTax > 0 && result.taxAfterRebate < result.minimumTax);
+
   return (
     <div className="print-only print-sheet">
       {/* ── Letterhead ─────────────────────────────────────────────── */}
@@ -120,7 +130,12 @@ export function PrintSheet({ result, input }: Props) {
             <Money label={t.fields.performanceBonus} annual={result.performanceBonus} />
             <Money label={t.fields.overtime} annual={result.overtime} />
             <Money label={t.fields.otherEmployment} annual={result.otherEmploymentIncome} />
-            <Money label={t.results.totalEmployment} annual={result.totalEmploymentIncome} total />
+            {/* The employment subtotal only earns a line when something follows
+                it. With no non-employment income it equals the gross below, and
+                two bold rows carrying the same figure read as a mistake. */}
+            {hasNonEmploymentIncome && (
+              <Money label={t.results.totalEmployment} annual={result.totalEmploymentIncome} total />
+            )}
             <Money label={t.results.otherIncome} annual={result.otherIncome} />
             <Money label={t.results.dividendGross} annual={result.dividendIncome} />
             <Money label={t.results.grossAnnual} annual={result.grossAnnualIncome} total />
@@ -171,7 +186,9 @@ export function PrintSheet({ result, input }: Props) {
                     : `≥ ${fmt(s.rangeFrom)}`}
                 </td>
                 <td className="ps-r num">{fmt(s.taxableInThisSlab)}</td>
-                <td className="ps-r num">{fmt(s.taxAmount)}</td>
+                {/* Em dash for the nil band, matching the monthly column —
+                    a column of figures reads faster when zero is not one. */}
+                <td className="ps-r num">{s.taxAmount ? fmt(s.taxAmount) : "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -179,7 +196,12 @@ export function PrintSheet({ result, input }: Props) {
 
         <table className="ps-table ps-tight">
           <tbody>
-            <Money label={t.results.grossTax} annual={result.grossTax} total />
+            {/* Same reasoning as the income subtotal: with nothing between them
+                the gross tax IS the annual tax, so print one row, under the
+                label that the summary below refers to. */}
+            {hasTaxAdjustments && (
+              <Money label={t.results.grossTax} annual={result.grossTax} total />
+            )}
             {result.investmentRebate > 0 && (
               <Money label={t.results.investmentRebate} annual={-result.investmentRebate} />
             )}
