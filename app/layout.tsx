@@ -28,7 +28,14 @@ const inter = Inter({
   display: "swap",
 });
 
-import { SITE_URL, SITE_NAME, CONTENT_UPDATED } from "@/lib/site";
+import {
+  SITE_URL,
+  SITE_NAME,
+  CONTENT_UPDATED,
+  AUTHOR_NAME,
+  AUTHOR_LINKEDIN,
+  AUTHOR_GITHUB,
+} from "@/lib/site";
 // Default import: named imports from JSON modules are being removed.
 import pkg from "../package.json";
 
@@ -44,12 +51,9 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [
-    {
-      name: "Md Rasel Ahmed",
-      url: "https://www.linkedin.com/in/meetraselahmed/",
-    },
+    { name: AUTHOR_NAME, url: AUTHOR_LINKEDIN },
   ],
-  creator: "Md Rasel Ahmed",
+  creator: AUTHOR_NAME,
   publisher: "ayakor",
   generator: "Next.js",
   category: "finance",
@@ -174,16 +178,13 @@ const APP_ID = `${SITE_URL}/#calculator`;
 const author = {
   "@type": "Person",
   "@id": AUTHOR_ID,
-  name: "Md Rasel Ahmed",
+  name: AUTHOR_NAME,
   email: "meetRaselAhmed@gmail.com",
-  url: "https://www.linkedin.com/in/meetraselahmed/",
+  url: AUTHOR_LINKEDIN,
   // Profiles a search engine can reconcile into one person. Authorship signals
   // carry weight on financial content, where "who wrote this" is part of
   // whether it should be trusted.
-  sameAs: [
-    "https://www.linkedin.com/in/meetraselahmed/",
-    "https://github.com/meetRaselAhmed",
-  ],
+  sameAs: [AUTHOR_LINKEDIN, AUTHOR_GITHUB],
 };
 
 const website = {

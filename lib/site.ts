@@ -17,3 +17,14 @@ export const SITE_NAME = "ayakor";
  * copy tweaks or refactors.
  */
 export const CONTENT_UPDATED = "2026-07-30";
+
+/**
+ * Author identity links. Centralised because these were previously written out
+ * at six call sites and had already drifted in casing — LinkedIn resolves
+ * case-insensitively, but the profile is displayed to readers and should read
+ * the way its owner writes it.
+ */
+export const AUTHOR_NAME = "Md Rasel Ahmed";
+export const AUTHOR_LINKEDIN = "https://www.linkedin.com/in/meetRaselAhmed";
+export const AUTHOR_GITHUB = "https://github.com/meetRaselAhmed";
+export const REPO_URL = "https://github.com/meetRaselAhmed/ayakor";
