@@ -41,8 +41,18 @@ export interface SurchargeBracket {
 
 export interface LawSource {
   label: string;
-  /** Authority tier — drives the badge in the UI. */
-  kind: "primary" | "official" | "secondary";
+  /**
+   * Authority tier — drives the badge in the UI.
+   *
+   * `primary`  — the statute itself.
+   * `official` — the authority that administers it (NBR, Ministry of Law).
+   *
+   * There is deliberately no tier for professional summaries or press. Cite
+   * them in a pull request to corroborate a figure; do not surface them to a
+   * taxpayer as the source of a number. Removing the tier from this union is
+   * what stops one drifting back in.
+   */
+  kind: "primary" | "official";
   url: string;
   note?: string;
 }
@@ -53,11 +63,15 @@ export type FilingQuarter = "q1" | "q2" | "q3" | "q4";
 /**
  * Year-round filing incentive (replaces the single 30-Nov "Tax Day"):
  * early filers (Q1) get a rebate; late filers (Q3/Q4) pay a surcharge.
- * PROVISIONAL — announced in the FY2026-27 budget; verify the enacted terms,
- * the exact assessment year it attaches to, and the minimum-tax interaction
- * against the gazetted Finance Act 2026 / an NBR paripatra before relying on it.
+ * Enacted by the Finance Act 2026.
  */
 export interface FilingIncentive {
+  /**
+   * True while any rate below is still unverified against the gazette. The
+   * early-filing rebate is confirmed; the Q3/Q4 rates are not, so this stays
+   * set and the UI flags them. Clear it only once every figure is read off
+   * the Act itself.
+   */
   provisional: boolean;
   /** Q1 (1 Jul–30 Sep): rebate = lower of rate × tax or cap. */
   earlyRebateRate: number; // 0.05
@@ -124,6 +138,17 @@ export interface TaxYearConfig {
 }
 
 // ─── Shared source references, reused across years ─────────────────────────
+//
+// Government sources only: the statute itself and the National Board of
+// Revenue. Professional summaries (PwC, KPMG, ICAB) and press reporting are
+// still useful for corroborating a figure while researching a change — the
+// contributing guide asks for exactly that — but they are not cited to the
+// reader. A taxpayer following a citation should land on the law or on the
+// authority that administers it, never on someone's reading of it.
+//
+// Every URL here is checked to resolve. Note the scheme on the Laws of
+// Bangladesh portal: it refuses TLS on 443 and serves plain HTTP only, so an
+// https:// link to it fails outright.
 const SRC = {
   nbr: {
     label: "National Board of Revenue (NBR)",
@@ -144,10 +169,12 @@ const SRC = {
     note: "Official online filing — the closest thing to an official calculator.",
   },
   ita2023: {
-    label: "Income Tax Act 2023",
+    label: "Income Tax Act 2023 — Laws of Bangladesh",
     kind: "primary",
-    url: "https://bdlaws.minlaw.gov.bd/act-1429.html",
-    note: "The governing statute (আয়কর আইন, ২০২৩), official Laws of Bangladesh portal.",
+    // http:// is deliberate. bdlaws.minlaw.gov.bd refuses connections on 443;
+    // an https:// link here is dead for every visitor.
+    url: "http://bdlaws.minlaw.gov.bd/act-1429.html",
+    note: "The governing statute (আয়কর আইন, ২০২৩) on the Ministry of Law's official portal.",
   },
   ita2023Nbr: {
     label: "Income Tax Act 2023 (PDF, NBR)",
@@ -155,49 +182,23 @@ const SRC = {
     url: "https://nbr.gov.bd/uploads/acts/Income_tax_act_2023.pdf",
     note: "NBR's consolidated English copy.",
   },
-  pwc: {
-    label: "PwC Worldwide Tax Summaries — Bangladesh",
-    kind: "secondary",
-    url: "https://taxsummaries.pwc.com/bangladesh/individual/taxes-on-personal-income",
-    note: "Year-labelled slabs, thresholds & minimum tax. Best single secondary source.",
-  },
-  pwcSurcharge: {
-    label: "PwC WTS — Bangladesh, other taxes",
-    kind: "secondary",
-    url: "https://taxsummaries.pwc.com/bangladesh/individual/other-taxes",
-  },
   financeAct2026: {
-    label: "Finance Act 2026 (gazetted 30 Jun 2026)",
+    label: "Finance Act 2026 (PDF, NBR)",
     kind: "primary",
-    url: "https://nbr.gov.bd/regulations/acts/finance-acts/eng",
+    url: "https://nbr.gov.bd/uploads/acts/Finance_Act_2026.pdf",
     note: "তফসিল-২ [ধারা ১৬০], প্রথম অংশ, অনুচ্ছেদ-ক — the AY 2026-27 rate table. Supersedes the Finance Ordinance 2025 schedule.",
   },
-  dailyStarFA2026: {
-    label: "The Daily Star — Finance Bill passed, threshold set at Tk 4 lakh",
-    kind: "secondary",
-    url: "https://www.thedailystar.net/business/bangladesh-budget-2025-26/news/finance-bill-passed-tax-free-income-threshold-set-tk-4-lakh-fy2026-27-4211511",
+  financeAct2024: {
+    label: "Finance Act 2024 (PDF, NBR)",
+    kind: "primary",
+    url: "https://nbr.gov.bd/uploads/acts/Finance_Act-2024.pdf",
+    note: "Sets the AY 2025-26 rate schedule.",
   },
-  tnpFA2026: {
-    label: "TNP Legal — Finance Act 2026 tax changes explained",
-    kind: "secondary",
-    url: "https://tnp.legal/blogs/finance-act-2026-bangladesh-tax-changes-explained/",
-    note: "Five-year threshold ladder: 4 lakh (AY 2026-27/27-28) → 4.5 lakh → 5 lakh.",
-  },
-  kpmgFO2025: {
-    label: "KPMG — Finance Ordinance 2025 tax proposals",
-    kind: "secondary",
-    url: "https://kpmg.com/us/en/taxnewsflash/news/2025/06/bangladesh-income-tax-vat-proposals-finance-ordinance-2025.html",
-  },
-  rrhFO2025: {
-    label: "Rahman Rahman Huq (KPMG) — salient features, FO 2025 (PDF)",
-    kind: "secondary",
-    url: "https://assets.kpmg.com/content/dam/kpmg/bd/pdf/TaxUpdate/Salient_features_of_Finance_Ordinance_June_2025.pdf",
-  },
-  icabFO2025: {
-    label: "ICAB — Finance Ordinance 2025, income tax (PDF)",
-    kind: "secondary",
-    url: "https://www.icab.org.bd/icabadmin/uploads/ckeditor/4053Finance%20Ordinance%202025_Income%20Tax_ICAB_3Sept25.pdf",
-    note: "Institute of Chartered Accountants of Bangladesh.",
+  nbrFinanceActs: {
+    label: "NBR — Finance Acts & Ordinances",
+    kind: "official",
+    url: "https://nbr.gov.bd/regulations/acts/finance-acts/eng",
+    note: "The full gazetted series, newest first.",
   },
 } as const;
 
@@ -269,12 +270,11 @@ const AY_2025_26: TaxYearConfig = {
   dividendExemption: DIVIDEND_EXEMPTION,
 
   sources: [
-    SRC.nbr,
+    SRC.financeAct2024,
     SRC.ita2023,
     SRC.ita2023Nbr,
-    SRC.kpmgFO2025, // documents the AY 2025-26 (350k) baseline it superseded
-    SRC.pwc,
-    SRC.pwcSurcharge,
+    SRC.nbrFinanceActs,
+    SRC.nbr,
     SRC.nbrForms,
     SRC.etax,
   ],
@@ -351,12 +351,11 @@ const AY_2026_27: TaxYearConfig = {
   },
 
   sources: [
-    SRC.nbr,
-    SRC.ita2023,
     SRC.financeAct2026,
-    SRC.dailyStarFA2026,
-    SRC.tnpFA2026,
-    SRC.pwc,
+    SRC.ita2023,
+    SRC.ita2023Nbr,
+    SRC.nbrFinanceActs,
+    SRC.nbr,
     SRC.nbrForms,
     SRC.etax,
   ],

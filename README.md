@@ -18,7 +18,7 @@ Live at **[ayakor.com](https://ayakor.com)**.
 - **Full salary components** — Basic, House Rent, Medical, Conveyance, Other allowances, two Festival Bonuses, Performance Bonus, Overtime, plus non-employment and dividend income (first Tk 50,000 of listed-company dividend exempt).
 - **Investment advisory card** — tells you exactly how much to invest for the maximum rebate and shows the savings.
 - **Net-wealth surcharge** — 10–35% for wealth above BDT 4 crore, plus the multi-car / large-property asset trigger.
-- **Per-year legal sources** — a dedicated section links the primary statute, official NBR resources, and Big-4 summaries for the selected year.
+- **Per-year legal sources** — a dedicated section links the primary statute and the official NBR resources for the selected year. Government sources only; every link is checked to resolve.
 - **Mobile sticky summary bar** — monthly TDS always visible while filling the form.
 - **Client-side calculation** — the salary and tax figures you enter are computed entirely in your browser and never sent anywhere. Optional anonymous visit analytics (Google Analytics 4, off by default) can be enabled by the operator.
 
@@ -114,11 +114,11 @@ Each assessment year carries its own citation list in the app (see the *Legal so
 - **Income Tax Act 2023** — bdlaws.minlaw.gov.bd (Act 1429) / NBR consolidated PDF
 - **Finance Act 2024** (AY 2025–26) and **Finance Act 2026** (AY 2026–27, gazetted 30 June 2026)
 - **National Board of Revenue** — nbr.gov.bd (forms, circulars, e-Return)
-- **PwC Worldwide Tax Summaries — Bangladesh**, plus press and firm summaries of the Finance Act 2026
+- Citations shown in the app are **government sources only** — the statute and the NBR. Professional summaries are used to corroborate a change in review, not shown to the reader.
 
 ## Contributing
 
-Contributions are welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**. Because this is a tax tool, there is one firm rule: **any change to a tax figure must live in `lib/tax-years.ts` and cite an authoritative source** (Income Tax Act 2023 / Finance Act / NBR paripatra, corroborated by PwC/KPMG/ICAB). Issue and pull-request templates in `.github/` walk you through it. Please also read the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**. Because this is a tax tool, there is one firm rule: **any change to a tax figure must live in `lib/tax-years.ts` and cite an official source** (Income Tax Act 2023 / the year's Finance Act / an NBR paripatra). Firm summaries may corroborate it in the pull request, but only government sources are cited in the app. Issue and pull-request templates in `.github/` walk you through it. Please also read the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Disclaimer
 

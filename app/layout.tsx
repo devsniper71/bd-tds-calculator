@@ -44,7 +44,10 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [
-    { name: "Md Rasel Ahmed", url: "https://github.com/meetRaselAhmed" },
+    {
+      name: "Md Rasel Ahmed",
+      url: "https://www.linkedin.com/in/meetraselahmed/",
+    },
   ],
   creator: "Md Rasel Ahmed",
   publisher: "ayakor",
@@ -117,7 +120,6 @@ export const metadata: Metadata = {
     description:
       "A precise, modern income-tax and TDS calculator for Bangladesh. Built on ITA 2023 and the Finance Act 2026.",
     images: ["/opengraph-image"],
-    creator: "@ayakor",
   },
   robots: {
     index: true,
@@ -174,8 +176,14 @@ const author = {
   "@id": AUTHOR_ID,
   name: "Md Rasel Ahmed",
   email: "meetRaselAhmed@gmail.com",
-  url: "https://github.com/meetRaselAhmed",
-  sameAs: ["https://github.com/meetRaselAhmed"],
+  url: "https://www.linkedin.com/in/meetraselahmed/",
+  // Profiles a search engine can reconcile into one person. Authorship signals
+  // carry weight on financial content, where "who wrote this" is part of
+  // whether it should be trusted.
+  sameAs: [
+    "https://www.linkedin.com/in/meetraselahmed/",
+    "https://github.com/meetRaselAhmed",
+  ],
 };
 
 const website = {

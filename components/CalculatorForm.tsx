@@ -155,6 +155,7 @@ export function CalculatorForm({ input, onChange }: Props) {
               <Field
                 label={t.fields.newTaxpayer}
                 hint={t.fields.newTaxpayerHint}
+                labelable={false}
               >
                 <Toggle
                   checked={!!input.isNewTaxpayer}
@@ -554,6 +555,7 @@ export function CalculatorForm({ input, onChange }: Props) {
           <Field
             label={t.fields.multipleCars}
             hint={t.fields.multipleCarsHint}
+            labelable={false}
           >
             <Toggle
               checked={!!input.ownsMultipleCars}
@@ -565,6 +567,7 @@ export function CalculatorForm({ input, onChange }: Props) {
           <Field
             label={t.fields.largeProperty}
             hint={t.fields.largePropertyHint}
+            labelable={false}
           >
             <Toggle
               checked={!!input.ownsLargeProperty}

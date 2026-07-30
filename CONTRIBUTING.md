@@ -52,9 +52,11 @@ This is the one workflow with hard requirements. **Any pull request that adds, r
 2. **Cite an authoritative source in the PR description**, ideally with a direct URL and the exact clause/section/page. Acceptable authority, in order of preference:
    - **Primary law** — the Income Tax Act 2023 and the year's Finance Act / Ordinance on [bdlaws.minlaw.gov.bd](https://bdlaws.minlaw.gov.bd/) or [nbr.gov.bd](https://nbr.gov.bd/).
    - **Official NBR** — paripatra (circulars), SROs, or the official return form.
-   - **Reputable professional summaries** — PwC Worldwide Tax Summaries, KPMG / Rahman Rahman Huq, Deloitte, ICAB. Use these to corroborate, not as the sole basis for a primary-law figure.
+   - **Reputable professional summaries** — PwC Worldwide Tax Summaries, KPMG / Rahman Rahman Huq, Deloitte, ICAB. Cite these **in the pull request** to corroborate a figure. They must never be the sole basis for a statutory number, and they are **not** added to the app's `sources` array — see below.
    - Blogs and news articles may support a change but must not be the *only* source for a statutory number.
-3. **Add the source** to that year's `sources` array so it surfaces in the app's *Legal sources* section.
+3. **Add the source** to that year's `sources` array so it surfaces in the app's *Legal sources* section — **government sources only**. `LawSource["kind"]` accepts `primary` (the statute) and `official` (NBR, Ministry of Law) and nothing else, so the compiler rejects a firm summary or news article here. A taxpayer following a citation should land on the law or on the authority that administers it, never on someone's reading of it. Corroborating links belong in the PR description.
+
+   Check the URL resolves before adding it. Note that `bdlaws.minlaw.gov.bd` refuses TLS and serves plain **http://** only — an `https://` link to it is dead.
 4. **State which assessment year** the change applies to. Remember: Bangladesh law is written per *income year* but charged the following *assessment year* — quoting the income year as the assessment year is the single most common error. Every figure in this project is keyed to the **assessment year**.
 
 PRs that change a number without a citation will be asked for one before review.
