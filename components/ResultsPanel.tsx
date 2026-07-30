@@ -64,6 +64,13 @@ export function ResultsPanel({ result, input }: Props) {
           />
           <PrintLine label="Effective rate" value={pct(result.effectiveTaxRate)} num />
           {filingLabel && <PrintLine label="Return filing" value={filingLabel} />}
+          {(result.filingRebate > 0 || result.filingSurcharge > 0) && (
+            <PrintLine
+              label={t.results.printAfterFiling}
+              value={fmt(result.taxAfterFilingIncentive)}
+              num
+            />
+          )}
         </div>
         <p className="text-[9px] text-muted border-t border-ink/15 pt-1 mb-1">
           Unofficial estimate for guidance only — not professional tax advice.
@@ -106,6 +113,18 @@ export function ResultsPanel({ result, input }: Props) {
             ≈ {fmt(result.annualTaxPayable)} {t.results.annualSummary}{" "}
             <span className="text-white">{pct(result.effectiveTaxRate)}</span>
           </div>
+          {/* The filing-quarter choice cannot move the monthly figure above, so
+              surface its effect here — otherwise the selector reads as inert. */}
+          {(result.filingRebate > 0 || result.filingSurcharge > 0) && (
+            <div className="text-[12.5px] text-paper/70 mt-1.5 pt-1.5 border-t border-paper/15">
+              <span className="num text-white">
+                {fmt(result.taxAfterFilingIncentive)}
+              </span>{" "}
+              {result.filingRebate > 0
+                ? t.results.afterEarlyFiling
+                : t.results.afterLateFiling}
+            </div>
+          )}
         </div>
       </div>
 
@@ -256,14 +275,14 @@ export function ResultsPanel({ result, input }: Props) {
               <Row
                 label={t.results.earlyFilingRebate}
                 value={-result.filingRebate}
-                hint={t.results.filingProvisionalNote}
+                hint={t.results.filingRebateNote}
               />
             )}
             {result.filingSurcharge > 0 && (
               <Row
                 label={t.results.lateFilingSurcharge}
                 value={result.filingSurcharge}
-                hint={t.results.filingProvisionalNote}
+                hint={t.results.filingSurchargeNote}
               />
             )}
             <Row

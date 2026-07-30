@@ -128,9 +128,10 @@ export const en = {
 
   filing: {
     label: "Return filing time",
-    hint: "Under the new year-round filing system, when you file adjusts your final tax.",
+    hint: "When you file adjusts your final tax bill — not the monthly TDS your employer deducts through the year.",
+    badge: "Late rates unverified",
     provisional:
-      "Enacted by the Finance Act 2026. The early-filing rebate is confirmed; the late-filing rates shown here are still being verified against the gazette.",
+      "The Finance Act 2026 enacted year-round filing. The Jul–Sep rebate (5% of tax, capped at BDT 25,000) is confirmed; the Jan–Mar and Apr–Jun rates above are not yet verified against the gazette.",
     quarters: {
       q1: "Jul – Sep",
       q2: "Oct – Dec",
@@ -151,8 +152,16 @@ export const en = {
     earlyFilingRebate: "Early-filing rebate",
     lateFilingSurcharge: "Late-filing surcharge",
     taxAfterFiling: "Tax after filing incentive",
-    filingProvisionalNote:
-      "Provisional — based on the announced year-round filing system; verify against the gazetted Finance Act 2026.",
+    // Shown under the hero so the filing-quarter choice has a visible effect —
+    // the monthly TDS above it cannot move, since TDS is deducted during the
+    // year and the incentive is applied when the return is filed.
+    afterEarlyFiling: "after the early-filing rebate",
+    afterLateFiling: "after the late-filing surcharge",
+    printAfterFiling: "After filing adjustment",
+    filingRebateNote:
+      "Confirmed by the Finance Act 2026 — 5% of tax, capped at BDT 25,000.",
+    filingSurchargeNote:
+      "Late-filing rate not yet verified against the gazette.",
 
     incomeSummary: "Income summary",
     totalEmployment: "Total employment income",
