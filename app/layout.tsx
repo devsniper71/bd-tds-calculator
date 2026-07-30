@@ -32,7 +32,7 @@ const SITE_URL = "https://ayakor.com";
 const SITE_NAME = "ayakor";
 const TITLE = "ayakor — Bangladesh Income Tax & TDS Calculator";
 const DESCRIPTION =
-  "A precise, modern Bangladesh income-tax and TDS calculator for salaried individuals. Built on the Income Tax Act 2023 as amended by the Finance Ordinance 2025 — covering Assessment Years 2025–26 and 2026–27, with every taxpayer category, investment rebate, minimum tax, and net-wealth surcharge. Free, open, and fully client-side.";
+  "A precise, modern Bangladesh income-tax and TDS calculator for salaried individuals. Built on the Income Tax Act 2023 as amended by the Finance Act 2026 — covering Assessment Years 2025–26 and 2026–27, with every taxpayer category, investment rebate, minimum tax, and net-wealth surcharge. Free, open, and fully client-side.";
 
 export const metadata: Metadata = {
   title: {
@@ -62,6 +62,7 @@ export const metadata: Metadata = {
     "Assessment Year 2026-27",
     "ITA 2023",
     "Income Tax Act 2023",
+    "Finance Act 2026",
     "Finance Ordinance 2025",
     "Finance Act 2024",
     "NBR",
@@ -84,7 +85,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${TITLE} · AY 2026–27`,
     description:
-      "The precise, modern way to calculate your Bangladesh income tax and monthly TDS. Built on ITA 2023 and the Finance Ordinance 2025 — free, open, and client-side.",
+      "The precise, modern way to calculate your Bangladesh income tax and monthly TDS. Built on ITA 2023 and the Finance Act 2026 — free, open, and client-side.",
     locale: "en_US",
     images: [
       {
@@ -100,7 +101,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${TITLE} · AY 2026–27`,
     description:
-      "A precise, modern income-tax and TDS calculator for Bangladesh. Built on ITA 2023 and the Finance Ordinance 2025.",
+      "A precise, modern income-tax and TDS calculator for Bangladesh. Built on ITA 2023 and the Finance Act 2026.",
     images: ["/opengraph-image"],
     creator: "@ayakor",
   },
@@ -180,7 +181,7 @@ const jsonLd = {
     },
     {
       "@type": "Thing",
-      name: "Finance Ordinance 2025",
+      name: "Finance Act 2026",
     },
   ],
   audience: {

@@ -10,7 +10,7 @@ Live at **[ayakor.com](https://ayakor.com)**.
 ## Features
 
 - **Multi-year rate engine** — pick the assessment year; thresholds, slabs, salary-exemption cap, minimum tax and legal sources all switch. Adding a future year is a data-only change in `lib/tax-years.ts`.
-- **Two verified rate cards** — AY 2025–26 (Finance Act 2024: 5% entry slab, 30% top, area-based minimum tax) and AY 2026–27 (Finance Ordinance 2025: no 5% slab, +25k thresholds, flat minimum tax, 5-lakh salary cap). Every figure carries its own citations.
+- **Two verified rate cards** — AY 2025–26 (Finance Act 2024: 5% entry slab, 30% top, area-based minimum tax) and AY 2026–27 (Finance Act 2026: no 5% slab, 4-lakh general threshold, flat minimum tax, 5-lakh salary cap). Every figure carries its own citations.
 - **Correct ITA 2023 methodology** — the consolidated employment-income exemption (lower of ⅓ of employment income or the yearly cap; no separate HRA/medical/conveyance exemption), the §78 investment rebate (lowest of 3% of taxable income, 15% of eligible investment, or Tk 10 lakh), and the statutory order *tax − rebate → floor at minimum tax → add surcharge*.
 - **Area-based minimum tax** — Tk 5,000 / 4,000 / 3,000 by location for AY 2025–26, flat Tk 5,000 from AY 2026–27; the location selector appears only when it applies.
 - **Light + dark theme** — frosted-glass surfaces, warm editorial palette in both, no-flash theme init, preference saved locally.
@@ -112,9 +112,9 @@ Point `ayakor.com` at Vercel (add A/AAAA or CNAME records as Vercel's dashboard 
 Each assessment year carries its own citation list in the app (see the *Legal sources* section). Primary references:
 
 - **Income Tax Act 2023** — bdlaws.minlaw.gov.bd (Act 1429) / NBR consolidated PDF
-- **Finance Act 2024** (AY 2025–26) and **Finance Ordinance 2025** (AY 2026–27, gazetted 22 June 2025)
+- **Finance Act 2024** (AY 2025–26) and **Finance Act 2026** (AY 2026–27, gazetted 30 June 2026)
 - **National Board of Revenue** — nbr.gov.bd (forms, circulars, e-Return)
-- **PwC Worldwide Tax Summaries — Bangladesh**, **KPMG / Rahman Rahman Huq**, and **ICAB** Finance Ordinance 2025 summaries
+- **PwC Worldwide Tax Summaries — Bangladesh**, plus press and firm summaries of the Finance Act 2026
 
 ## Contributing
 

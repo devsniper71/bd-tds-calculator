@@ -17,7 +17,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "What is the tax-free income limit in Bangladesh for AY 2026-27?",
-    a: "For Assessment Year 2026-27 (Finance Ordinance 2025) the general tax-free threshold is BDT 375,000. It is BDT 425,000 for women and senior citizens (65+), BDT 500,000 for persons with disability and third-gender taxpayers, and BDT 525,000 for gazetted war-wounded freedom fighters and July Warriors 2024, plus an extra BDT 50,000 per physically-challenged child.",
+    a: "For Assessment Year 2026-27 (Finance Act 2026) the general tax-free threshold is BDT 400,000. It is BDT 450,000 for women and senior citizens (65+), BDT 525,000 for persons with disability and third-gender taxpayers, and BDT 550,000 for gazetted war-wounded freedom fighters and gazetted July Warriors injured in the 2024 uprising, plus an extra BDT 50,000 per physically-challenged child — though where both parents are taxpayers only one of them may claim that addition. The same thresholds apply for Assessment Year 2027-28.",
   },
   {
     q: "Are house rent, medical, and conveyance allowances tax-free?",
@@ -33,7 +33,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "Which assessment years does the calculator support?",
-    a: "ayakor supports Assessment Year 2025-26 (Finance Act 2024) and Assessment Year 2026-27 (Finance Ordinance 2025). You can switch between them at the top of the form; the thresholds, slabs, minimum tax, and legal sources all update accordingly.",
+    a: "ayakor supports Assessment Year 2025-26 (Finance Act 2024) and Assessment Year 2026-27 (Finance Act 2026). You can switch between them at the top of the form; the thresholds, slabs, minimum tax, and legal sources all update accordingly.",
   },
   {
     q: "Is freelancing or foreign remittance income taxable?",
@@ -41,7 +41,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "Is there a rebate for filing my return early?",
-    a: "Bangladesh is moving to a year-round filing system that rewards early filing and penalises late filing. Filing in the first quarter (1 July – 30 September) earns a rebate of 5% of your tax payable, capped at BDT 25,000; the October–December window is neutral; and filing in January–March or April–June carries a surcharge (the higher of 2% or BDT 3,000, and 5% or BDT 5,000, respectively). This is a provisional measure announced in the FY2026-27 budget — the calculator shows it for AY 2026-27 and flags it as provisional pending the gazetted Finance Act 2026. It adjusts your final tax at filing, not your monthly TDS.",
+    a: "Yes. The Finance Act 2026 enacted a year-round filing system that rewards early filing and penalises late filing. Filing in the first quarter (1 July – 30 September) earns a rebate of 5% of your tax payable, capped at BDT 25,000, and the October–December window is neutral. Filing after that carries additional tax; the calculator applies the higher of 2% or BDT 3,000 for January–March and the higher of 5% or BDT 5,000 for April–June, and flags those late-filing figures as still being verified against the gazette. The adjustment applies to your final tax at filing, not to your monthly TDS.",
   },
   {
     q: "Is my financial data private?",
