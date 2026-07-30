@@ -144,6 +144,54 @@ export const en = {
     q2Note: "no change",
   },
 
+  // Copy for the printed / saved-PDF computation sheet. It is a standalone
+  // document, so it repeats context the screen gets from its surroundings.
+  print: {
+    docTitle: "Income Tax Computation",
+    assessmentYear: "Assessment year",
+    prepared: "Prepared",
+    statute: "Statute",
+    incomeYear: "Income year",
+    taxpayer: "Taxpayer category",
+    location: "Location",
+    firstTime: "First-time taxpayer",
+    disabledChildren: "Physically challenged children",
+    returnFiling: "Return filing window",
+    yes: "Yes",
+
+    sec1: "Income particulars",
+    sec2: "Taxable income",
+    sec3: "Tax computation",
+    sec4: "Summary",
+
+    colParticulars: "Particulars",
+    colMonthly: "Monthly",
+    colAnnual: "Annual (BDT)",
+    colRate: "Rate",
+    colSlab: "Income slab",
+    colInSlab: "Amount in slab",
+    colTax: "Tax (BDT)",
+
+    perMonth: "/mo",
+    monthlyTds: "Monthly TDS to deduct",
+    annualTax: "Annual tax payable",
+    effectiveRate: "Effective tax rate",
+    afterFiling: "Payable after filing adjustment",
+    alreadyDeducted: "Less: tax already deducted",
+    balanceDue: "Balance payable",
+    refundable: "Refundable",
+
+    // Credits the tool, not a preparer. Wording matters: nothing here may
+    // suggest a named person prepared or certified this taxpayer's figures.
+    generatedBy: "Generated with ayakor",
+    builtBy: "Built by Md Rasel Ahmed",
+    disclaimer:
+      "Unofficial estimate for guidance only — not professional tax advice, and not prepared or certified by any tax practitioner. Figures are computed from the amounts entered by the user. Complex situations may need specialist review; for binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
+    sourceNote:
+      "Rates applied are those of the {statute} for {year}. Statutory sources are listed at ayakor.com.",
+    page: "Page 1 of 1",
+  },
+
   results: {
     printButton: "Print / Save PDF",
     monthlyTDS: "Monthly TDS to deduct",

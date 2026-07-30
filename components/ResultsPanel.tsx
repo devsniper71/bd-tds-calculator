@@ -42,42 +42,6 @@ export function ResultsPanel({ result, input }: Props) {
 
   return (
     <div className="space-y-6 results-panel">
-      {/* Print-only computation-sheet header + key figures */}
-      <div className="print-only">
-        <div className="flex items-baseline justify-between border-b border-ink/30 pb-1.5 mb-2">
-          <span className="font-head text-[17px] text-ink">
-            ayakor — Income Tax Computation
-          </span>
-          <span className="num text-[11px] text-muted">
-            {cfg.label}
-            {printDate ? ` · ${printDate}` : ""}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-[11px] mb-2">
-          <PrintLine label="Taxpayer" value={t.categories[input.category]} />
-          <PrintLine label="Statute" value={cfg.statute} />
-          <PrintLine label="Monthly TDS" value={fmt(result.monthlyTDS)} num />
-          <PrintLine
-            label="Annual tax payable"
-            value={fmt(result.annualTaxPayable)}
-            num
-          />
-          <PrintLine label="Effective rate" value={pct(result.effectiveTaxRate)} num />
-          {filingLabel && <PrintLine label="Return filing" value={filingLabel} />}
-          {(result.filingRebate > 0 || result.filingSurcharge > 0) && (
-            <PrintLine
-              label={t.results.printAfterFiling}
-              value={fmt(result.taxAfterFilingIncentive)}
-              num
-            />
-          )}
-        </div>
-        <p className="text-[9px] text-muted border-t border-ink/15 pt-1 mb-1">
-          Unofficial estimate for guidance only — not professional tax advice.
-          Generated at ayakor.com.
-        </p>
-      </div>
-
       {/* Print / Save-as-PDF button (screen only) */}
       <div className="no-print flex justify-end">
         <button

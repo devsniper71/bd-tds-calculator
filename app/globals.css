@@ -240,6 +240,15 @@
     background: #ffffff !important;
     background-image: none !important;
   }
+  /* The layout pins body and <main> to at least one viewport height. On paper
+     that reserves a screen's worth of blank space and pushes the colophon onto
+     a second, near-empty page. Let the sheet be as tall as its content. */
+  html,
+  body,
+  main {
+    min-height: 0 !important;
+    height: auto !important;
+  }
   .no-print {
     display: none !important;
   }
@@ -261,21 +270,236 @@
     break-inside: avoid;
     box-shadow: none !important;
   }
-  /* Compact spacing + lighter card borders for a tidy one-page sheet. */
-  .results-panel > * + * {
-    margin-top: 10px !important;
-  }
-  .results-panel .glass,
-  .results-panel .rounded-xl,
-  .results-panel .rounded-2xl {
-    padding: 10px 12px !important;
-    border-radius: 6px !important;
-    border: 1px solid rgb(var(--c-ink) / 0.18) !important;
-  }
   @page {
-    margin: 14mm;
+    margin: 16mm 15mm;
   }
   a[target="_blank"]::after {
     content: "";
+  }
+
+  /* ── Computation sheet ────────────────────────────────────────────
+     A standalone document, not the screen layout reflowed: fixed 10pt
+     body, hairline rules, and figures in a tabular column so they line
+     up on the decimal. */
+  .print-sheet {
+    font-size: 10pt;
+    line-height: 1.45;
+    color: #111;
+  }
+  .print-sheet .num {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Letterhead */
+  .ps-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 6pt;
+    border-bottom: 1.6pt solid #0a5d44;
+    margin-bottom: 8pt;
+  }
+  .ps-wordmark {
+    font-family: var(--font-head), Georgia, serif;
+    font-size: 19pt;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #0a5d44;
+  }
+  .ps-dot {
+    display: inline-block;
+    width: 4pt;
+    height: 4pt;
+    border-radius: 50%;
+    background: #0a5d44;
+    margin-left: 3pt;
+    vertical-align: 3pt;
+  }
+  .ps-site {
+    display: block;
+    font-size: 7.5pt;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #5a5850;
+    margin-top: 1pt;
+  }
+  .ps-head-doc {
+    text-align: right;
+  }
+  .ps-doctitle {
+    font-family: var(--font-head), Georgia, serif;
+    font-size: 13pt;
+    letter-spacing: 0.02em;
+  }
+  .ps-docyear {
+    font-size: 9pt;
+    color: #5a5850;
+  }
+
+  /* Particulars grid */
+  .ps-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1pt 22pt;
+    padding-bottom: 6pt;
+    border-bottom: 0.6pt solid #cfcabf;
+    margin-bottom: 9pt;
+  }
+  .ps-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10pt;
+    font-size: 9pt;
+  }
+  .ps-meta-k {
+    color: #5a5850;
+  }
+  .ps-meta-v {
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* Sections.
+     Deliberately NOT `break-inside: avoid`. A tall section that cannot fit the
+     remaining space gets pushed whole to the next page, stranding half a page
+     of white — which is exactly what a fully filled-in return produced. Break
+     control belongs at the row level instead: rows stay intact, table headers
+     repeat, and a heading never lands at the foot of a page without its
+     table. */
+  .ps-sec {
+    margin-bottom: 8pt;
+  }
+  .ps-sec-h {
+    break-after: avoid;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: #0a5d44;
+    padding-bottom: 3pt;
+    margin-bottom: 5pt;
+    border-bottom: 0.6pt solid #0a5d44;
+  }
+  .ps-sec-n {
+    display: inline-block;
+    min-width: 13pt;
+    color: #8a877d;
+  }
+
+  /* Tables */
+  .ps-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  /* Repeat column headings on every page a table spills onto — otherwise the
+     continuation is a wall of unlabelled figures. */
+  .ps-table thead {
+    display: table-header-group;
+  }
+  .ps-table tr {
+    break-inside: avoid;
+  }
+  /* Never strand a total on its own page, away from the rows it sums. */
+  .ps-total td {
+    break-before: avoid;
+  }
+  .ps-table thead th {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #5a5850;
+    text-align: left;
+    padding: 0 0 3pt;
+    border-bottom: 0.6pt solid #cfcabf;
+  }
+  .ps-table td {
+    padding: 1.9pt 0;
+    border-bottom: 0.4pt solid #e8e4da;
+    vertical-align: top;
+  }
+  .ps-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .ps-r {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .ps-table td:first-child {
+    padding-right: 12pt;
+  }
+  .ps-total td {
+    font-weight: 700;
+    border-top: 0.7pt solid #9a968c;
+    border-bottom: none !important;
+    padding-top: 3.2pt;
+  }
+  .ps-tight {
+    margin-top: 6pt;
+  }
+  .ps-note {
+    font-size: 8pt;
+    color: #5a5850;
+    font-style: italic;
+    margin-top: 4pt;
+  }
+
+  /* Summary band */
+  .ps-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10pt;
+    border: 0.7pt solid #0a5d44;
+    border-radius: 3pt;
+    padding: 6pt 10pt;
+    background: #f2f7f4 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .ps-sum-k {
+    font-size: 7.5pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5a5850;
+  }
+  .ps-sum-v {
+    font-size: 12pt;
+    font-weight: 600;
+    margin-top: 1pt;
+  }
+  .ps-sum-lead .ps-sum-v {
+    font-size: 15pt;
+    color: #0a5d44;
+  }
+
+  /* Colophon */
+  .ps-foot {
+    margin-top: 9pt;
+    padding-top: 5pt;
+    border-top: 0.6pt solid #cfcabf;
+    break-inside: avoid;
+  }
+  .ps-foot-src {
+    font-size: 8pt;
+    color: #5a5850;
+    margin-bottom: 3pt;
+  }
+  .ps-foot-disc {
+    font-size: 7.5pt;
+    line-height: 1.4;
+    color: #6a675e;
+    margin-bottom: 5pt;
+  }
+  .ps-foot-credit {
+    display: flex;
+    justify-content: space-between;
+    gap: 14pt;
+    font-size: 7.5pt;
+    letter-spacing: 0.03em;
+    color: #0a5d44;
+    border-top: 0.4pt solid #e8e4da;
+    padding-top: 4pt;
   }
 }
