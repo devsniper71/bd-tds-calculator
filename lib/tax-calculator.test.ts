@@ -47,12 +47,15 @@ const near = (a: number, b: number) => expect(a).toBeCloseTo(b, 2);
 // ---------------------------------------------------------------------------
 
 describe("default salaried profile", () => {
-  it("AY 2026-27 — taxable 8,64,000, annual tax 58,350, monthly 4,862.50", () => {
+  it("AY 2026-27 — taxable 8,64,000, annual tax 54,600, monthly 4,550", () => {
+    // threshold 4,00,000 → 4,64,000 taxable above it
+    //   300,000 @ 10% = 30,000
+    //   164,000 @ 15% = 24,600
     const r = calculate(input("2026-27"));
     expect(r.taxableIncome).toBe(864000);
-    expect(r.grossTax).toBe(58350);
-    expect(r.annualTaxPayable).toBe(58350);
-    near(r.monthlyTDS, 4862.5);
+    expect(r.grossTax).toBe(54600);
+    expect(r.annualTaxPayable).toBe(54600);
+    near(r.monthlyTDS, 4550);
     expect(r.salaryExemptionCap).toBe(500000);
   });
 
@@ -76,16 +79,16 @@ describe("boundaries and input guards", () => {
   });
 
   it("income exactly at the threshold → no tax, no minimum tax", () => {
-    // employment 5,62,500 → 1/3 exemption 1,87,500 → taxable 3,75,000 = threshold
-    const r = calculate(employmentOnly("2026-27", 562500));
-    expect(r.taxableIncome).toBe(375000);
+    // employment 6,00,000 → 1/3 exemption 2,00,000 → taxable 4,00,000 = threshold
+    const r = calculate(employmentOnly("2026-27", 600000));
+    expect(r.taxableIncome).toBe(400000);
     expect(r.grossTax).toBe(0);
     expect(r.minimumTax).toBe(0);
     expect(r.annualTaxPayable).toBe(0);
   });
 
   it("just above the threshold → minimum tax floor binds", () => {
-    const r = calculate(employmentOnly("2026-27", 600000)); // taxable 4,00,000
+    const r = calculate(employmentOnly("2026-27", 637500)); // taxable 4,25,000
     expect(r.grossTax).toBe(2500); // 25,000 @ 10%
     expect(r.annualTaxPayable).toBe(5000); // min tax
   });
@@ -100,8 +103,10 @@ describe("boundaries and input guards", () => {
   });
 
   it("very large income reaches the 30% top slab", () => {
+    // exemption capped at 5,00,000 → taxable 5,95,00,000; 30% band starts at
+    // 4,00,000 + 32,00,000 = 36,00,000 of taxable income
     const r = calculate(employmentOnly("2026-27", 60_000_000));
-    expect(r.grossTax).toBe(17467500);
+    expect(r.grossTax).toBe(17460000);
   });
 });
 
@@ -110,15 +115,23 @@ describe("boundaries and input guards", () => {
 // ---------------------------------------------------------------------------
 
 describe("taxpayer categories", () => {
+  // Finance Act 2026, Sch. 2 ¶ক — base table plus provisos (ক)/(খ)/(গ).
   it("category thresholds (AY 2026-27)", () => {
-    expect(calculate(input("2026-27", { category: "general_male" })).taxFreeThreshold).toBe(375000);
-    expect(calculate(input("2026-27", { category: "female_or_senior" })).taxFreeThreshold).toBe(425000);
-    expect(calculate(input("2026-27", { category: "disabled_or_third_gender" })).taxFreeThreshold).toBe(500000);
-    expect(calculate(input("2026-27", { category: "freedom_fighter" })).taxFreeThreshold).toBe(525000);
+    expect(calculate(input("2026-27", { category: "general_male" })).taxFreeThreshold).toBe(400000);
+    expect(calculate(input("2026-27", { category: "female_or_senior" })).taxFreeThreshold).toBe(450000);
+    expect(calculate(input("2026-27", { category: "disabled_or_third_gender" })).taxFreeThreshold).toBe(525000);
+    expect(calculate(input("2026-27", { category: "freedom_fighter" })).taxFreeThreshold).toBe(550000);
+  });
+
+  it("AY 2025-26 keeps the Finance Act 2024 thresholds", () => {
+    expect(calculate(input("2025-26", { category: "general_male" })).taxFreeThreshold).toBe(350000);
+    expect(calculate(input("2025-26", { category: "female_or_senior" })).taxFreeThreshold).toBe(400000);
+    expect(calculate(input("2025-26", { category: "disabled_or_third_gender" })).taxFreeThreshold).toBe(475000);
+    expect(calculate(input("2025-26", { category: "freedom_fighter" })).taxFreeThreshold).toBe(500000);
   });
 
   it("+50,000 threshold per physically-challenged child", () => {
-    expect(calculate(input("2026-27", { disabledChildren: 2 })).taxFreeThreshold).toBe(475000);
+    expect(calculate(input("2026-27", { disabledChildren: 2 })).taxFreeThreshold).toBe(500000);
   });
 
   it("non-resident foreigner: flat 30%, no threshold or exemption", () => {
@@ -154,17 +167,17 @@ describe("investment rebate", () => {
 // ---------------------------------------------------------------------------
 
 describe("investment advisory", () => {
-  // employment 7,00,000 → taxable 4,66,666.67 → gross tax 9,166.67, floor 5,000.
-  // Only 4,166.67 of rebate is useful, so 27,777.78 of investment is enough —
-  // advising the statutory max (9,166.67 → 61,111) would lock up 33k for nothing.
+  // employment 7,00,000 → taxable 4,66,666.67 → gross tax 6,666.67, floor 5,000.
+  // Only 1,666.67 of rebate is useful, so 11,111.11 of investment is enough —
+  // advising the statutory max (6,666.67 → 44,444) would lock up 33k for nothing.
   const nearFloor = (over: Partial<CalculatorInput> = {}) =>
     calculate(employmentOnly("2026-27", 700_000, over));
 
   it("advises only the investment that actually reduces tax", () => {
     const r = nearFloor();
-    near(r.maxPossibleRebate, 4166.67);
-    near(r.additionalInvestmentNeeded, 27777.78);
-    near(r.possibleTaxSavings, 4166.67);
+    near(r.maxPossibleRebate, 1666.67);
+    near(r.additionalInvestmentNeeded, 11111.11);
+    near(r.possibleTaxSavings, 1666.67);
     expect(r.constrainedByMinimumTax).toBe(true);
   });
 
@@ -174,12 +187,12 @@ describe("investment advisory", () => {
     near(r.annualTaxPayable, 5000);
     expect(r.atMaxRebate).toBe(true);
     expect(r.possibleTaxSavings).toBe(0);
-    // Investing the old (statutory-max) figure buys exactly nothing more.
-    near(nearFloor({ actualInvestment: 61_111 }).annualTaxPayable, 5000);
+    // Investing the full statutory-max figure buys exactly nothing more.
+    near(nearFloor({ actualInvestment: 44_444 }).annualTaxPayable, 5000);
   });
 
   it("gross tax below the floor → no useful rebate at all", () => {
-    const r = calculate(employmentOnly("2026-27", 600_000)); // gross tax 2,500
+    const r = calculate(employmentOnly("2026-27", 645_000)); // gross tax 3,000
     expect(r.maxPossibleRebate).toBe(0);
     expect(r.additionalInvestmentNeeded).toBe(0);
     expect(r.possibleTaxSavings).toBe(0);
@@ -187,7 +200,7 @@ describe("investment advisory", () => {
   });
 
   it("unconstrained income still targets the full statutory rebate", () => {
-    const r = calculate(input("2026-27")); // taxable 8,64,000, tax 58,350
+    const r = calculate(input("2026-27")); // taxable 8,64,000, tax 54,600
     expect(r.maxPossibleRebate).toBe(25920);
     expect(r.additionalInvestmentNeeded).toBe(172800);
     expect(r.constrainedByMinimumTax).toBe(false);
@@ -197,12 +210,12 @@ describe("investment advisory", () => {
     // Minimum tax sits OUTSIDE the surcharge base this year, so every taka of
     // rebate keeps working below the floor — the full statutory max is useful.
     const r = nearFloor({ ownsMultipleCars: true });
-    near(r.maxPossibleRebate, 9166.67);
-    near(r.additionalInvestmentNeeded, 61111.11);
+    near(r.maxPossibleRebate, 6666.67);
+    near(r.additionalInvestmentNeeded, 44444.44);
     expect(r.constrainedByMinimumTax).toBe(false);
-    // 4,166.67 off the tax (9,166.67 → the 5,000 floor) + the whole 916.67
+    // 1,666.67 off the tax (6,666.67 → the 5,000 floor) + the whole 666.67
     // surcharge, which is levied on tax-after-rebate and so falls to nil.
-    near(r.possibleTaxSavings, 5083.33);
+    near(r.possibleTaxSavings, 2333.33);
   });
 
   it("AY 2025-26 surcharge: minimum tax is inside the base, so the clamp holds", () => {
@@ -245,22 +258,23 @@ describe("net-wealth surcharge", () => {
 // ---------------------------------------------------------------------------
 
 describe("minimum tax", () => {
+  // 7,00,000 employment → taxable 4,66,666.67, above both years' thresholds.
+  const low = { income: { ...EMPTY_INCOME, otherEmploymentIncome: 700000 } };
+
   it("AY 2025-26 is area-based (5,000 / 4,000 / 3,000)", () => {
-    const low = { income: { ...EMPTY_INCOME, otherEmploymentIncome: 600000 } };
     expect(calculate(input("2025-26", { minTaxArea: "dhaka_ctg", ...low })).minimumTax).toBe(5000);
     expect(calculate(input("2025-26", { minTaxArea: "other_city", ...low })).minimumTax).toBe(4000);
     expect(calculate(input("2025-26", { minTaxArea: "other", ...low })).minimumTax).toBe(3000);
   });
 
   it("AY 2026-27 is a flat 5,000 regardless of location", () => {
-    const low = { income: { ...EMPTY_INCOME, otherEmploymentIncome: 600000 } };
     expect(calculate(input("2026-27", { minTaxArea: "other", ...low })).minimumTax).toBe(5000);
   });
 
   it("first-time taxpayer minimum is 1,000 in both years", () => {
-    const low = { isNewTaxpayer: true, income: { ...EMPTY_INCOME, otherEmploymentIncome: 600000 } };
-    expect(calculate(input("2026-27", low)).minimumTax).toBe(1000);
-    expect(calculate(input("2025-26", low)).minimumTax).toBe(1000);
+    const newbie = { isNewTaxpayer: true, ...low };
+    expect(calculate(input("2026-27", newbie)).minimumTax).toBe(1000);
+    expect(calculate(input("2025-26", newbie)).minimumTax).toBe(1000);
   });
 
   it("non-resident foreigners get the same area / first-time modifiers", () => {
@@ -292,8 +306,8 @@ describe("dividend exemption", () => {
 describe("filing incentive", () => {
   it("Q1 early filing → rebate = min(5% of tax, 25,000)", () => {
     const r = calculate(input("2026-27", { filingQuarter: "q1" }));
-    near(r.filingRebate, 2917.5);
-    near(r.taxAfterFilingIncentive, 55432.5);
+    near(r.filingRebate, 2730); // 5% of 54,600
+    near(r.taxAfterFilingIncentive, 51870);
   });
 
   it("Q3 late filing → surcharge = max(2% of tax, 3,000)", () => {
@@ -305,7 +319,8 @@ describe("filing incentive", () => {
   });
 
   it("rebate is min-tax-safe: reported rebate collapses when the floor claws it back", () => {
-    const r = calculate(employmentOnly("2026-27", 600000, { filingQuarter: "q1" }));
+    // taxable 4,30,000 → gross tax 3,000, already below the 5,000 floor
+    const r = calculate(employmentOnly("2026-27", 645000, { filingQuarter: "q1" }));
     expect(r.annualTaxPayable).toBe(5000);
     expect(r.filingRebate).toBe(0);
     expect(r.taxAfterFilingIncentive).toBe(5000);

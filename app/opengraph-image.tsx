@@ -126,7 +126,7 @@ export default async function OGImage() {
           <div style={{ display: "flex", gap: "32px" }}>
             <span>ITA 2023</span>
             <span>·</span>
-            <span>Finance Ordinance 2025</span>
+            <span>Finance Act 2026</span>
             <span>·</span>
             <span>Free &amp; client-side</span>
           </div>

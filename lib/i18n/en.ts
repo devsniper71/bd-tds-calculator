@@ -9,7 +9,7 @@ export const en = {
       post: "with line-by-line transparency.",
     },
     subtitle:
-      "Built on the Income Tax Act 2023 as amended by the Finance Ordinance 2025. All six slabs, every taxpayer category, investment rebate, minimum tax floor, and net-wealth surcharge.",
+      "Built on the Income Tax Act 2023 as amended by the Finance Act 2026. All six slabs, every taxpayer category, investment rebate, minimum tax floor, and net-wealth surcharge.",
   },
 
   sections: {
@@ -29,7 +29,8 @@ export const en = {
     minTaxArea: "Location (for minimum tax)",
     category: "Category",
     disabledChildren: "Physically challenged children",
-    disabledChildrenHint: "+BDT 50,000 added to threshold per child",
+    disabledChildrenHint:
+      "+BDT 50,000 to the threshold per child. If both parents are taxpayers, only one may claim it — enter it on one return only.",
     newTaxpayer: "First-time taxpayer (new TIN)",
     newTaxpayerHint: "Minimum tax becomes BDT 1,000 instead of 5,000",
 
@@ -128,7 +129,8 @@ export const en = {
   filing: {
     label: "Return filing time",
     hint: "Under the new year-round filing system, when you file adjusts your final tax.",
-    provisional: "Provisional — pending the gazetted Finance Act 2026.",
+    provisional:
+      "Enacted by the Finance Act 2026. The early-filing rebate is confirmed; the late-filing rates shown here are still being verified against the gazette.",
     quarters: {
       q1: "Jul – Sep",
       q2: "Oct – Dec",
@@ -214,7 +216,7 @@ export const en = {
       accent: "in plain sight",
       post: ".",
     },
-    body: "The progressive structure introduced in the Finance Ordinance 2025 raised the tax-free threshold by BDT 25,000 and merged the bottom 5% slab into the 10% bracket. The top marginal rate of 30% applies above roughly BDT 35.75 lakh of taxable income for general taxpayers.",
+    body: "The Finance Act 2026 set the general tax-free threshold at BDT 4,00,000 and kept the bottom 5% slab abolished, so the first taxable taka is charged at 10%. The top marginal rate of 30% applies above BDT 36 lakh of taxable income for general taxpayers. Thresholds are fixed at this level for AY 2026–27 and 2027–28.",
     thRange: "Range (BDT)",
     thRate: "Rate",
     thNote: "Slab",
@@ -260,7 +262,7 @@ export const en = {
       "This calculator is provided for guidance only. Complex situations (recognised provident fund, multiple-employer income, foreign income relief, perquisite valuation, etc.) may need specialist review. For binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
     dueDateNote:
       "Return filing due date: 30 November (for individuals). Up to 90 days extension available in unavoidable circumstances.",
-    lastUpdated: "Last updated for Finance Ordinance 2025",
+    lastUpdated: "Last updated for Finance Act 2026",
     credits: "Built by",
   },
 };

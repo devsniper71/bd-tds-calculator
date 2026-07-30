@@ -7,7 +7,7 @@
  *
  * Statutory basis (see each year's `sources`):
  *   • Income Tax Act 2023 — §§ 21, 76, 78, 153, 166, 174, 264, 265
- *   • Finance Act 2023 / Finance Act 2024 / Finance Ordinance 2025
+ *   • Finance Act 2024 (AY 2025-26) / Finance Act 2026 (AY 2026-27)
  */
 
 import {

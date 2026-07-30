@@ -12,7 +12,13 @@
  * figure here is keyed to the ASSESSMENT YEAR.
  *
  *   Finance Act 2024        → IY 2024-25 → AY 2025-26
- *   Finance Ordinance 2025  → IY 2025-26 → AY 2026-27
+ *   Finance Act 2026        → IY 2025-26 → AY 2026-27
+ *
+ * The Finance Ordinance 2025 had set AY 2026-27 thresholds at 3,75,000 / 4,25,000
+ * / 5,00,000 / 5,25,000. The Finance Act 2026 (gazetted 30 Jun 2026, in force
+ * 1 Jul 2026) replaced that schedule before the year began, raising every
+ * threshold by 25,000 and fixing rates out to AY 2030-31. Those FO 2025 figures
+ * never applied to an assessed year and are deliberately not kept here.
  *
  * Every number is sourced — see the `sources` array on each year.
  */
@@ -160,11 +166,22 @@ const SRC = {
     kind: "secondary",
     url: "https://taxsummaries.pwc.com/bangladesh/individual/other-taxes",
   },
-  financeOrdinance2025: {
-    label: "Finance Ordinance 2025 (gazetted 22 Jun 2025)",
+  financeAct2026: {
+    label: "Finance Act 2026 (gazetted 30 Jun 2026)",
     kind: "primary",
     url: "https://nbr.gov.bd/regulations/acts/finance-acts/eng",
-    note: "Amends the ITA 2023 rate schedule for AY 2026-27.",
+    note: "তফসিল-২ [ধারা ১৬০], প্রথম অংশ, অনুচ্ছেদ-ক — the AY 2026-27 rate table. Supersedes the Finance Ordinance 2025 schedule.",
+  },
+  dailyStarFA2026: {
+    label: "The Daily Star — Finance Bill passed, threshold set at Tk 4 lakh",
+    kind: "secondary",
+    url: "https://www.thedailystar.net/business/bangladesh-budget-2025-26/news/finance-bill-passed-tax-free-income-threshold-set-tk-4-lakh-fy2026-27-4211511",
+  },
+  tnpFA2026: {
+    label: "TNP Legal — Finance Act 2026 tax changes explained",
+    kind: "secondary",
+    url: "https://tnp.legal/blogs/finance-act-2026-bangladesh-tax-changes-explained/",
+    note: "Five-year threshold ladder: 4 lakh (AY 2026-27/27-28) → 4.5 lakh → 5 lakh.",
   },
   kpmgFO2025: {
     label: "KPMG — Finance Ordinance 2025 tax proposals",
@@ -264,23 +281,34 @@ const AY_2025_26: TaxYearConfig = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AY 2026-27 — Finance Ordinance 2025 (IY 2025-26): thresholds +25k, 5% entry
-// slab abolished (first taxable taka @ 10%), flat minimum tax, salary cap 5 lakh.
+// AY 2026-27 — Finance Act 2026 (IY 2025-26): general threshold 4,00,000, 5%
+// entry slab abolished (first taxable taka @ 10%), flat minimum tax, salary
+// cap 5 lakh. Thresholds are the opening step of a five-year schedule that
+// runs to AY 2030-31 (Sch. 2 covers AY 2026-27 → 2030-31; ¶ক sets 2026-27 and
+// 2027-28 at these rates).
 // ═══════════════════════════════════════════════════════════════════════════
 const AY_2026_27: TaxYearConfig = {
   id: "2026-27",
   label: "AY 2026–27",
   incomeYear: "Income Year 2025–2026",
-  statute: "Finance Ordinance 2025",
+  statute: "Finance Act 2026",
   isDefault: true,
 
+  // Finance Act 2026, তফসিল-২ [ধারা ১৬০], প্রথম অংশ, অনুচ্ছেদ-ক:
+  //   base table 4,00,000 · proviso (ক) women & 65+ 4,50,000
+  //   proviso (খ) third-gender & person with disability 5,25,000
+  //   proviso (গ) gazetted war-wounded freedom fighter / injured July Warrior
+  //               2024, 5,50,000
   thresholds: {
-    general_male: 375_000,
-    female_or_senior: 425_000,
-    disabled_or_third_gender: 500_000,
-    freedom_fighter: 525_000,
+    general_male: 400_000,
+    female_or_senior: 450_000,
+    disabled_or_third_gender: 525_000,
+    freedom_fighter: 550_000,
     non_resident_foreigner: 0,
   },
+  // Proviso (ঘ): +50,000 per physically-challenged child/dependent — but where
+  // BOTH parents are taxpayers only one of them may claim it. The engine cannot
+  // know that, so the field hint tells the user to claim it on one return only.
   disabledChildThresholdBump: 50_000,
 
   slabs: [
@@ -307,10 +335,11 @@ const AY_2026_27: TaxYearConfig = {
   nonResidentRate: 0.3,
   dividendExemption: DIVIDEND_EXEMPTION,
 
-  // PROVISIONAL — year-round filing framework from the FY2026-27 budget.
-  // Source: Views Bangladesh, "Up to Tk 25,000 tax rebate for early return
-  // submission" — https://viewsbangladesh.com/up-to-tk-25000-tax-rebate-for-early-return-submission/
-  // Verify the enacted terms & assessment-year attachment against the gazette.
+  // The year-round filing framework is now ENACTED by the Finance Act 2026.
+  // The early-filing side is corroborated: 5% of tax capped at 25,000 for
+  // 1 Jul–30 Sep, neutral through December. The late-filing rates below are
+  // still the budget-announcement figures — kept `provisional: true` until the
+  // Q3/Q4 terms are read off the gazette itself.
   filingIncentive: {
     provisional: true,
     earlyRebateRate: 0.05,
@@ -324,10 +353,9 @@ const AY_2026_27: TaxYearConfig = {
   sources: [
     SRC.nbr,
     SRC.ita2023,
-    SRC.financeOrdinance2025,
-    SRC.kpmgFO2025,
-    SRC.rrhFO2025,
-    SRC.icabFO2025,
+    SRC.financeAct2026,
+    SRC.dailyStarFA2026,
+    SRC.tnpFA2026,
     SRC.pwc,
     SRC.nbrForms,
     SRC.etax,
