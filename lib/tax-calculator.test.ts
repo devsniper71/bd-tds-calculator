@@ -149,6 +149,72 @@ describe("investment rebate", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Investment advisory — must never advise investing for rebate the minimum-tax
+// floor claws straight back.
+// ---------------------------------------------------------------------------
+
+describe("investment advisory", () => {
+  // employment 7,00,000 → taxable 4,66,666.67 → gross tax 9,166.67, floor 5,000.
+  // Only 4,166.67 of rebate is useful, so 27,777.78 of investment is enough —
+  // advising the statutory max (9,166.67 → 61,111) would lock up 33k for nothing.
+  const nearFloor = (over: Partial<CalculatorInput> = {}) =>
+    calculate(employmentOnly("2026-27", 700_000, over));
+
+  it("advises only the investment that actually reduces tax", () => {
+    const r = nearFloor();
+    near(r.maxPossibleRebate, 4166.67);
+    near(r.additionalInvestmentNeeded, 27777.78);
+    near(r.possibleTaxSavings, 4166.67);
+    expect(r.constrainedByMinimumTax).toBe(true);
+  });
+
+  it("the advised investment reaches the floor — and no more is needed", () => {
+    const advised = nearFloor().additionalInvestmentNeeded;
+    const r = nearFloor({ actualInvestment: advised });
+    near(r.annualTaxPayable, 5000);
+    expect(r.atMaxRebate).toBe(true);
+    expect(r.possibleTaxSavings).toBe(0);
+    // Investing the old (statutory-max) figure buys exactly nothing more.
+    near(nearFloor({ actualInvestment: 61_111 }).annualTaxPayable, 5000);
+  });
+
+  it("gross tax below the floor → no useful rebate at all", () => {
+    const r = calculate(employmentOnly("2026-27", 600_000)); // gross tax 2,500
+    expect(r.maxPossibleRebate).toBe(0);
+    expect(r.additionalInvestmentNeeded).toBe(0);
+    expect(r.possibleTaxSavings).toBe(0);
+    expect(r.constrainedByMinimumTax).toBe(true);
+  });
+
+  it("unconstrained income still targets the full statutory rebate", () => {
+    const r = calculate(input("2026-27")); // taxable 8,64,000, tax 58,350
+    expect(r.maxPossibleRebate).toBe(25920);
+    expect(r.additionalInvestmentNeeded).toBe(172800);
+    expect(r.constrainedByMinimumTax).toBe(false);
+  });
+
+  it("AY 2026-27 surcharge: rebate below the floor still shrinks the surcharge", () => {
+    // Minimum tax sits OUTSIDE the surcharge base this year, so every taka of
+    // rebate keeps working below the floor — the full statutory max is useful.
+    const r = nearFloor({ ownsMultipleCars: true });
+    near(r.maxPossibleRebate, 9166.67);
+    near(r.additionalInvestmentNeeded, 61111.11);
+    expect(r.constrainedByMinimumTax).toBe(false);
+    // 4,166.67 off the tax (9,166.67 → the 5,000 floor) + the whole 916.67
+    // surcharge, which is levied on tax-after-rebate and so falls to nil.
+    near(r.possibleTaxSavings, 5083.33);
+  });
+
+  it("AY 2025-26 surcharge: minimum tax is inside the base, so the clamp holds", () => {
+    const r = calculate(
+      employmentOnly("2025-26", 700_000, { ownsMultipleCars: true })
+    );
+    expect(r.constrainedByMinimumTax).toBe(true);
+    expect(r.maxPossibleRebate).toBeLessThan(r.grossTax);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Net-wealth surcharge (lower-exclusive / upper-inclusive brackets)
 // ---------------------------------------------------------------------------
 

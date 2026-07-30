@@ -434,69 +434,20 @@ function AnimatedFigure({
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Investment Advisory Card — three states:
-//   1. "Maxed"       — already claiming the maximum possible rebate
-//   2. "Min-tax"     — tax already at the BDT 5,000 floor; more invest won't help
-//   3. "Opportunity" — can invest more to reduce tax
+// Investment Advisory Card — three states, checked in this order:
+//   1. "Opportunity" — investing more still reduces tax
+//   2. "Min-tax"     — nothing more to gain because the floor blocks it
+//   3. "Maxed"       — nothing more to gain because the rebate is maxed
+// Opportunity is checked first so a partially-useful rebate isn't reported as
+// "maxed"; min-tax before maxed so the floor is named as the reason.
 // ───────────────────────────────────────────────────────────────────────────
 
 function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
   const { t } = useTranslation();
   const fmt = (n: number) => formatBDT(n);
 
-  // State 1: Already claiming full rebate
-  if (result.atMaxRebate && result.investmentRebate > 0) {
-    return (
-      <div className="rounded-xl border border-emerald/30 bg-emerald-soft/60 p-5 card-lift relative overflow-hidden animate-fadeSlideUp">
-        <div className="flex items-baseline justify-between mb-2.5">
-          <span className="label-eyebrow text-emerald-deep">
-            {t.advisory.maxedEyebrow}
-          </span>
-          <CheckIcon />
-        </div>
-        <p className="text-[14.5px] text-ink leading-snug">
-          {tmpl(t.advisory.maxedHeadline, {
-            amount: fmt(result.investmentRebate),
-          })}
-        </p>
-        <p className="text-[11.5px] text-muted mt-2 leading-relaxed">
-          {t.advisory.maxedSub}
-        </p>
-      </div>
-    );
-  }
-
-  // State 2: Minimum tax floor blocks further savings
-  if (
-    result.constrainedByMinimumTax &&
-    result.possibleTaxSavings <= 0 &&
-    result.additionalInvestmentNeeded > 0
-  ) {
-    return (
-      <div className="rounded-xl border border-ember/40 bg-ember/10 p-5 card-lift animate-fadeSlideUp">
-        <div className="flex items-baseline justify-between mb-2.5">
-          <span className="label-eyebrow text-ember">
-            {t.advisory.minTaxEyebrow}
-          </span>
-          <InfoIcon />
-        </div>
-        <p className="text-[14.5px] text-ink leading-snug">
-          {tmpl(t.advisory.minTaxHeadline, {
-            amount: fmt(result.minimumTax),
-          })}
-        </p>
-        <p className="text-[11.5px] text-muted mt-2 leading-relaxed">
-          {t.advisory.minTaxSub}
-        </p>
-      </div>
-    );
-  }
-
-  // State 3: Opportunity — invest more to save
-  if (
-    result.additionalInvestmentNeeded > 0 &&
-    result.possibleTaxSavings > 0
-  ) {
+  // State 1: Opportunity — invest more to save
+  if (result.additionalInvestmentNeeded > 0 && result.possibleTaxSavings > 0) {
     const rebateProgress =
       result.maxPossibleRebate > 0
         ? (result.investmentRebate / result.maxPossibleRebate) * 100
@@ -569,6 +520,50 @@ function InvestmentAdvisoryCard({ result }: { result: CalculatorResult }) {
             {t.advisory.ruleHint}
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // State 2: Minimum tax floor blocks any further saving
+  if (result.constrainedByMinimumTax && result.possibleTaxSavings <= 0) {
+    return (
+      <div className="rounded-xl border border-ember/40 bg-ember/10 p-5 card-lift animate-fadeSlideUp">
+        <div className="flex items-baseline justify-between mb-2.5">
+          <span className="label-eyebrow text-ember">
+            {t.advisory.minTaxEyebrow}
+          </span>
+          <InfoIcon />
+        </div>
+        <p className="text-[14.5px] text-ink leading-snug">
+          {tmpl(t.advisory.minTaxHeadline, {
+            amount: fmt(result.minimumTax),
+          })}
+        </p>
+        <p className="text-[11.5px] text-muted mt-2 leading-relaxed">
+          {t.advisory.minTaxSub}
+        </p>
+      </div>
+    );
+  }
+
+  // State 3: Already claiming the full useful rebate
+  if (result.atMaxRebate && result.investmentRebate > 0) {
+    return (
+      <div className="rounded-xl border border-emerald/30 bg-emerald-soft/60 p-5 card-lift relative overflow-hidden animate-fadeSlideUp">
+        <div className="flex items-baseline justify-between mb-2.5">
+          <span className="label-eyebrow text-emerald-deep">
+            {t.advisory.maxedEyebrow}
+          </span>
+          <CheckIcon />
+        </div>
+        <p className="text-[14.5px] text-ink leading-snug">
+          {tmpl(t.advisory.maxedHeadline, {
+            amount: fmt(result.investmentRebate),
+          })}
+        </p>
+        <p className="text-[11.5px] text-muted mt-2 leading-relaxed">
+          {t.advisory.maxedSub}
+        </p>
       </div>
     );
   }
