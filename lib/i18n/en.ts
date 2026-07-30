@@ -198,6 +198,11 @@ export const en = {
       "Unofficial estimate for guidance only — not professional tax advice, and not prepared or certified by any tax practitioner. Figures are computed from the amounts entered by the user. Complex situations may need specialist review; for binding determinations consult a Bangladesh-licensed income tax practitioner or the National Board of Revenue.",
     sourceNote:
       "Rates applied are those of the {statute} for {year}. Statutory sources are listed at ayakor.com.",
+    // On screen the late-filing rates carry an "unverified" badge a glance
+    // away. On paper there is nothing to glance at, so the caveat has to
+    // travel with the figure.
+    filingUnverified:
+      "Late-filing rate not yet verified against the gazette — treat as provisional.",
   },
 
   results: {
