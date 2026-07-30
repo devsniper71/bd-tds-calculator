@@ -445,7 +445,7 @@ export function CalculatorForm({ input, onChange }: Props) {
               <span className="label-eyebrow">{t.filing.label}</span>
               {cfg.filingIncentive.provisional && (
                 <span className="rounded-full border border-ember/40 text-ember bg-ember/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] font-semibold">
-                  Provisional
+                  {t.filing.badge}
                 </span>
               )}
             </div>
