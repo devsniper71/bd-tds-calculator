@@ -22,20 +22,22 @@ export default async function OGImage() {
           fontFamily: "serif",
         }}
       >
-        {/* Decorative large ৳ watermark */}
+        {/* Decorative watermark. Latin "Tk", not the ৳ sign: the image renderer
+            ships no Bengali font, so ৳ came out as an empty tofu rectangle. */}
         <div
           style={{
             position: "absolute",
-            right: "-40px",
-            top: "-120px",
-            fontSize: "560px",
+            right: "56px",
+            top: "-24px",
+            fontSize: "300px",
             color: "#0a5d44",
-            opacity: 0.07,
+            opacity: 0.06,
             lineHeight: 1,
             fontWeight: 300,
+            letterSpacing: "-0.05em",
           }}
         >
-          ৳
+          Tk
         </div>
 
         {/* Top: wordmark */}
@@ -87,8 +89,15 @@ export default async function OGImage() {
           >
             Bangladesh Income Tax · AY 2026–27
           </div>
+          {/* Satori requires an explicit `display` on any node with more than
+              one child. Without it the whole image fails to render and the
+              route returns an empty body — so the words are discrete spans in
+              a flex row rather than text interleaved with a <span>. */}
           <div
             style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "baseline",
               fontSize: "88px",
               fontWeight: 300,
               color: "#0d0d0b",
@@ -96,17 +105,13 @@ export default async function OGImage() {
               letterSpacing: "-0.02em",
             }}
           >
-            Calculate your{" "}
-            <span
-              style={{
-                fontStyle: "italic",
-                color: "#063b2c",
-                fontWeight: 400,
-              }}
-            >
+            {/* Word spacing via marginRight, not `gap` — the renderer ignores
+                the two-value gap shorthand here and ran the words together. */}
+            <span style={{ marginRight: "24px" }}>Calculate your</span>
+            <span style={{ marginRight: "24px", color: "#063b2c", fontWeight: 400 }}>
               TDS
-            </span>{" "}
-            with precision.
+            </span>
+            <span>with precision.</span>
           </div>
         </div>
 

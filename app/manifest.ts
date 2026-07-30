@@ -11,13 +11,23 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#f6f2ea",
     theme_color: "#0a5d44",
     categories: ["finance", "productivity", "utilities"],
-    lang: "en",
+    lang: "en-BD",
+    dir: "ltr",
+    id: "/",
+    scope: "/",
+    orientation: "portrait-primary",
     icons: [
       {
         src: "/icon.svg",
         type: "image/svg+xml",
         sizes: "any",
         purpose: "any",
+      },
+      {
+        src: "/apple-icon",
+        type: "image/png",
+        sizes: "180x180",
+        purpose: "maskable",
       },
     ],
   };
