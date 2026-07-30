@@ -541,6 +541,57 @@ export function calculate(input: CalculatorInput): CalculatorResult {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Filing-quarter comparison
+// ---------------------------------------------------------------------------
+
+export const FILING_QUARTERS: readonly FilingQuarter[] = [
+  "q1",
+  "q2",
+  "q3",
+  "q4",
+];
+
+/** Neutral window — no rebate, no surcharge. The baseline others compare to. */
+export const NEUTRAL_FILING_QUARTER: FilingQuarter = "q2";
+
+export interface FilingOutlook {
+  quarter: FilingQuarter;
+  /** Annual liability once the filing rebate or surcharge is applied. */
+  annualTax: number;
+  /**
+   * `annualTax` spread over twelve months — a budgeting figure for comparing
+   * the windows, NOT the monthly TDS. TDS is what the employer withholds
+   * during the income year and is identical whichever quarter you file in;
+   * the filing adjustment lands afterwards, on the taxpayer.
+   */
+  monthlyEquivalent: number;
+  /** Against the neutral window: positive costs more, negative saves. */
+  deltaVsNeutral: number;
+}
+
+/**
+ * What each filing window would cost, so the UI can show the consequence at
+ * the point of choosing instead of only after the fact. Pure — it runs the
+ * engine once per quarter and reads off the settled liability.
+ */
+export function filingOutlook(input: CalculatorInput): FilingOutlook[] {
+  const at = (quarter: FilingQuarter) =>
+    calculate({ ...input, filingQuarter: quarter }).taxAfterFilingIncentive;
+
+  const neutral = at(NEUTRAL_FILING_QUARTER);
+
+  return FILING_QUARTERS.map((quarter) => {
+    const annualTax = at(quarter);
+    return {
+      quarter,
+      annualTax,
+      monthlyEquivalent: annualTax / 12,
+      deltaVsNeutral: annualTax - neutral,
+    };
+  });
+}
+
 export const DEFAULT_INPUT: CalculatorInput = {
   assessmentYear: DEFAULT_YEAR_ID,
   category: "general_male",

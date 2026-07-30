@@ -1,10 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   CalculatorInput,
   TaxpayerCategory,
   MinTaxArea,
-  FilingQuarter,
+  filingOutlook,
   formatBDT,
   formatPercent,
 } from "@/lib/tax-calculator";
@@ -13,7 +14,7 @@ import {
   ASSESSMENT_YEAR_IDS,
   TAX_YEARS,
 } from "@/lib/tax-years";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, tmpl } from "@/lib/i18n";
 import { Field } from "./ui/Field";
 import { MoneyInput } from "./ui/MoneyInput";
 import { Section } from "./ui/Section";
@@ -41,6 +42,10 @@ export function CalculatorForm({ input, onChange }: Props) {
 
   const cfg = getYearConfig(input.assessmentYear);
   const isNRForeigner = input.category === "non_resident_foreigner";
+
+  // What each filing window would cost. Memoised because it runs the engine
+  // once per quarter and this component re-renders on every keystroke.
+  const outlook = useMemo(() => filingOutlook(input), [input]);
 
   return (
     <div>
@@ -457,7 +462,7 @@ export function CalculatorForm({ input, onChange }: Props) {
               aria-label={t.filing.label}
               className="grid grid-cols-2 sm:grid-cols-4 gap-2"
             >
-              {(["q1", "q2", "q3", "q4"] as FilingQuarter[]).map((q) => {
+              {outlook.map(({ quarter: q, monthlyEquivalent, deltaVsNeutral }) => {
                 const fi = cfg.filingIncentive!;
                 const checked = (input.filingQuarter ?? "q2") === q;
                 let note: string;
@@ -468,12 +473,28 @@ export function CalculatorForm({ input, onChange }: Props) {
                 else if (q === "q4")
                   note = `+${formatPercent(fi.lateQ4Rate, 0)} · ≥ ${formatBDT(fi.lateQ4Floor)}`;
                 else note = t.filing.q2Note;
+
+                // Screen readers get the comparison spelled out; sighted users
+                // read it off the four figures side by side.
+                const delta =
+                  deltaVsNeutral === 0
+                    ? ""
+                    : ` — ${tmpl(
+                        deltaVsNeutral < 0
+                          ? t.filing.savesVsNeutral
+                          : t.filing.costsVsNeutral,
+                        { amount: formatBDT(Math.abs(deltaVsNeutral)) }
+                      )}`;
+
                 return (
                   <button
                     type="button"
                     key={q}
                     onClick={() => set({ filingQuarter: q })}
                     aria-pressed={checked}
+                    aria-label={`${t.filing.quarters[q]}: ${formatBDT(
+                      monthlyEquivalent
+                    )}${t.filing.perMonth}${delta}`}
                     className={`chip-button text-left rounded-md border px-2.5 py-2 ${
                       checked
                         ? "border-emerald bg-emerald-soft text-emerald-deep shadow-inset"
@@ -483,7 +504,21 @@ export function CalculatorForm({ input, onChange }: Props) {
                     <span className="block text-[12px] leading-snug">
                       {t.filing.quarters[q]}
                     </span>
-                    <span className="block text-[9.5px] text-muted mt-0.5 num">
+                    <span
+                      aria-hidden
+                      className={`block text-[13px] num font-medium mt-0.5 leading-tight ${
+                        checked ? "text-emerald-deep" : "text-ink"
+                      }`}
+                    >
+                      {formatBDT(monthlyEquivalent)}
+                      <span className="text-[9.5px] text-muted font-normal">
+                        {t.filing.perMonth}
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden
+                      className="block text-[9.5px] text-muted mt-0.5 num"
+                    >
                       {note}
                     </span>
                   </button>
