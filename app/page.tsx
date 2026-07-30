@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CalculatorForm } from "@/components/CalculatorForm";
 import { ResultsPanel } from "@/components/ResultsPanel";
+import { PrintSheet } from "@/components/PrintSheet";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   calculate,
@@ -22,6 +23,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-dvh">
+      {/* The entire printed document. Everything else on the page is no-print. */}
+      <PrintSheet result={result} input={input} />
+
       {/* ────── Masthead ────── */}
       <header className="border-b border-rule glass-header sticky top-0 z-30 no-print">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
@@ -92,12 +96,12 @@ export default function HomePage() {
       </section>
 
       {/* ────── Two-column layout ────── */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 sm:py-10 no-print">
         <div className="calc-grid grid grid-cols-12 gap-x-8 lg:gap-x-10 gap-y-8 lg:gap-y-10">
           <div className="col-span-12 lg:col-span-7 no-print">
             <CalculatorForm input={input} onChange={setInput} />
           </div>
-          <div className="col-span-12 lg:col-span-5">
+          <div className="col-span-12 lg:col-span-5 no-print">
             <div className="lg:sticky lg:top-[72px]">
               <ResultsPanel result={result} input={input} />
             </div>
